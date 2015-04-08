@@ -1,7 +1,10 @@
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.net.Socket;
 import java.net.UnknownHostException;
@@ -9,41 +12,98 @@ import java.util.StringTokenizer;
 
 
 public class Main2 {
-
+	static String ip;
+	static int port;
+	
+	static Socket dataSocket;
+	static BufferedReader dataReader;
+	static BufferedWriter dataWriter;
+	
 	public static void main(String[] args) throws UnknownHostException, IOException {
-		Socket socket = new Socket("localhost", 21);
-		BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-		BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(socket.getOutputStream()));
-		System.out.println(reader.readLine());
-		System.out.println(reader.readLine());
-		System.out.println(reader.readLine());
+		// Åbn forbindelse til kommandoer
+		Socket cmdConnection = new Socket("localhost", 21);
+		BufferedReader cmdReader = new BufferedReader(new InputStreamReader(cmdConnection.getInputStream()));
+		BufferedWriter cmdWriter = new BufferedWriter(new OutputStreamWriter(cmdConnection.getOutputStream()));
 		
+		System.out.println(cmdReader.readLine());  
+		System.out.println(cmdReader.readLine()); // welcome message is first 3 lines for FileZilla server
+		System.out.println(cmdReader.readLine());
+		
+//		System.out.println(cmdReader.readLine());
 		// Log ind
-		System.out.println("USER root\r\n");
-		writer.write("USER root\r\n");
-		writer.flush();
-		System.out.println(reader.readLine());
+//		System.out.println("USER root\r\n");
+		cmdWriter.write("USER root\r\n");
+		cmdWriter.flush();
+		System.out.println(cmdReader.readLine());
 		
-		System.out.println("PASS \r\n");
-		writer.write("PASS \r\n");
-		writer.flush();
-		System.out.println(reader.readLine());
+//		System.out.println("PASS \r\n");
+		cmdWriter.write("PASS \r\n");
+		cmdWriter.flush();
+		System.out.println(cmdReader.readLine());
 		
-		System.out.println("PWD \r\n");
 		// Print working directory
-		writer.write("PWD \r\n");
-		writer.flush();
-		System.out.println(reader.readLine());
+//		System.out.println("PWD \r\n");
+		cmdWriter.write("PWD \r\n");
+		cmdWriter.flush();
+		System.out.println(cmdReader.readLine());
 		
-		System.out.println("PASV \r\n");
-		writer.write("PASV \r\n");
-		writer.flush();
-		String response = reader.readLine();
+//		System.out.println("PASV \r\n");
+		
+	    // Åbn data forbindelse
+		openDataConnection(cmdReader, cmdWriter);
+	    
+	    // Print filer i working directory
+//		System.out.println("LIST \r\n");
+		cmdWriter.write("LIST \r\n");
+		cmdWriter.flush();
+		System.out.println(cmdReader.readLine());
+		while (dataReader.ready()) System.out.println(dataReader.readLine());
+		System.out.println(cmdReader.readLine());
+		
+		// WOODWKODWOKO
+		openDataConnection(cmdReader, cmdWriter);
+		cmdWriter.write("LIST \r\n");
+		cmdWriter.flush();
+		System.out.println(cmdReader.readLine());
+		while (dataReader.ready()) System.out.println(dataReader.readLine());
+		System.out.println(cmdReader.readLine());
+		
+		// Skift working directory
+		cmdWriter.write("CWD pseudofolder \r\n");
+		cmdWriter.flush();
+		System.out.println(cmdReader.readLine());
+		
+		// Download fil
+		openDataConnection(cmdReader, cmdWriter);
+		cmdWriter.write("RETR Cmdlineargumenttest.java \r\n");
+		cmdWriter.flush();
+		
+		File targetFile = new File("C:/Users/Mogens/Desktop/YOYO.java");
+		OutputStream targetStream = new FileOutputStream(targetFile);
+		byte[] buffer = new byte[8 * 1024];
+		int bytesRead;
+//		while (dataReader.read) {
+//			
+//		}
+		System.out.println(cmdReader.readLine());
+		
+		// Close up connections
+		cmdReader.close();
+		cmdWriter.close();
+		cmdConnection.close();
+		
+		dataReader.close();
+		dataWriter.close();
+		dataSocket.close();
+	}
+	private static void openDataConnection(BufferedReader cmdReader,
+			BufferedWriter cmdWriter) throws UnknownHostException, IOException {
+		cmdWriter.write("PASV \r\n");
+		cmdWriter.flush();
+		String response = cmdReader.readLine();
 		System.out.println(response);
 		
-		// Opret data forbindelse
-		String ip = null;
-	    int port = -1;
+		// Fang IP og port angivet af server
 	    int opening = response.indexOf('(');
 	    int closing = response.indexOf(')', opening + 1);
 	    if (closing > 0) {
@@ -55,22 +115,12 @@ public class Main2 {
 	        port = Integer.parseInt(tokenizer.nextToken()) * 256
 	            + Integer.parseInt(tokenizer.nextToken());
 	      } catch (Exception e) {
-	        throw new IOException("SimpleFTP received bad data link information: "
-	            + response);
+	        throw new IOException("Received bad data link information: "+ response);
 	      }
 	    }
-	    System.out.println(ip+", "+port);
 	    
-	    Socket dataSocket = new Socket(ip, port);
-	    BufferedReader reader2 = new BufferedReader(new InputStreamReader(dataSocket.getInputStream()));
-	    System.out.println(reader2.readLine());
-	    
-	    
-	    // Print filer i working directory
-		System.out.println("LIST \r\n");
-		writer.write("LIST \r\n");
-		writer.flush();
-		System.out.println(reader.readLine());
+		dataSocket = new Socket(ip, port);
+	    dataReader = new BufferedReader(new InputStreamReader(dataSocket.getInputStream()));
+	    dataWriter = new BufferedWriter(new OutputStreamWriter(dataSocket.getOutputStream()));
 	}
-
 }
