@@ -1,8 +1,10 @@
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
@@ -18,6 +20,7 @@ public class Main2 {
 	static Socket dataSocket;
 	static BufferedReader dataReader;
 	static BufferedWriter dataWriter;
+	static BufferedInputStream fileReader;
 	
 	public static void main(String[] args) throws UnknownHostException, IOException {
 		// Åbn forbindelse til kommandoer
@@ -74,18 +77,8 @@ public class Main2 {
 		System.out.println(cmdReader.readLine());
 		
 		// Download fil
-		openDataConnection(cmdReader, cmdWriter);
-		cmdWriter.write("RETR Cmdlineargumenttest.java \r\n");
-		cmdWriter.flush();
-		
-		File targetFile = new File("C:/Users/Mogens/Desktop/YOYO.java");
-		OutputStream targetStream = new FileOutputStream(targetFile);
-		byte[] buffer = new byte[8 * 1024];
-		int bytesRead;
-//		while (dataReader.read) {
-//			
-//		}
-		System.out.println(cmdReader.readLine());
+		System.out.println(downloadFile(cmdReader, cmdWriter, 
+				"C:/Users/Mogens/Desktop/", "Cmdlineargumenttest.java"));
 		
 		// Close up connections
 		cmdReader.close();
@@ -96,6 +89,58 @@ public class Main2 {
 		dataWriter.close();
 		dataSocket.close();
 	}
+	
+	private static void openFileTransferConnection(BufferedReader cmdReader,
+			BufferedWriter cmdWriter) throws UnknownHostException, IOException {
+		cmdWriter.write("PASV \r\n");
+		cmdWriter.flush();
+		String response = cmdReader.readLine();
+		System.out.println(response);
+		
+		// Fang IP og port angivet af server
+	    int opening = response.indexOf('(');
+	    int closing = response.indexOf(')', opening + 1);
+	    if (closing > 0) {
+	      String dataLink = response.substring(opening + 1, closing);
+	      StringTokenizer tokenizer = new StringTokenizer(dataLink, ",");
+	      try {
+	        ip = tokenizer.nextToken() + "." + tokenizer.nextToken() + "."
+	            + tokenizer.nextToken() + "." + tokenizer.nextToken();
+	        port = Integer.parseInt(tokenizer.nextToken()) * 256
+	            + Integer.parseInt(tokenizer.nextToken());
+	      } catch (Exception e) {
+	        throw new IOException("Received bad data link information: "+ response);
+	      }
+	    }
+	    
+		dataSocket = new Socket(ip, port);
+		fileReader = new BufferedInputStream(dataSocket.getInputStream());
+	    dataWriter = new BufferedWriter(new OutputStreamWriter(dataSocket.getOutputStream()));
+	}
+	
+	private static String downloadFile(BufferedReader cmdReader,
+			BufferedWriter cmdWriter, 
+			String localPath, String fileName) throws UnknownHostException, IOException {
+		
+		openFileTransferConnection(cmdReader, cmdWriter);
+		cmdWriter.write("RETR "+fileName+" \r\n");
+		cmdWriter.flush();
+		
+		String response = cmdReader.readLine();
+		if (!response.startsWith("150")) return response; // return hvis fil ikke findes
+		
+		File targetFile = new File(localPath+fileName);
+		OutputStream targetStream = new FileOutputStream(targetFile);
+		byte[] buffer = new byte[8 * 1024];
+		int bytesRead;
+	
+		while ((bytesRead = fileReader.read(buffer)) != -1) {
+			targetStream.write(buffer, 0, bytesRead);
+		}
+		System.out.println(cmdReader.readLine());
+		return "File transfered!";
+	}
+	
 	private static void openDataConnection(BufferedReader cmdReader,
 			BufferedWriter cmdWriter) throws UnknownHostException, IOException {
 		cmdWriter.write("PASV \r\n");
