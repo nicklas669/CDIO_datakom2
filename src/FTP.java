@@ -30,6 +30,15 @@ public class FTP implements Runnable {
 		System.out.println("FTP tråd startet, JOE!!!");
 	}
 	
+	public void printWorkDirContents() throws UnknownHostException, IOException {
+		// Print filer i working directory
+		openDataConnection(cmdReader, cmdWriter);
+		cmdWriter.write("LIST \r\n");
+		cmdWriter.flush();
+		System.out.println(cmdReader.readLine());
+		while (dataReader.ready()) System.out.println(dataReader.readLine());
+		System.out.println(cmdReader.readLine());
+	}
 	
 	public void changeWorkDir(String folder) throws IOException {
 		cmdWriter.write("CWD "+folder+"\r\n");
@@ -74,9 +83,7 @@ public class FTP implements Runnable {
 		dataSocket.close();
 	}
 	
-	public String downloadFile(BufferedReader cmdReader,
-			BufferedWriter cmdWriter, 
-			String localPath, String fileName) throws UnknownHostException, IOException {
+	public String downloadFile(String localPath, String fileName) throws UnknownHostException, IOException {
 		
 		openFileTransferConnection(cmdReader, cmdWriter);
 		cmdWriter.write("RETR "+fileName+" \r\n");

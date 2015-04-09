@@ -30,7 +30,7 @@ public class Main {
 		Thread FTP = new Thread(ftp);
 		FTP.start();
 		
-		sc = new Scanner(System.in);
+//		sc = new Scanner(System.in);
 		System.out.println("FTP Osteklient v. 0.8");
 //		System.out.println("Forbind til FTP server.");
 //		System.out.print("Indtast IP: ");
@@ -40,8 +40,6 @@ public class Main {
 		ip = "localhost";
 		port = 21;
 		
-		
-		// Åbn forbindelse til kommandoer
 		ftp.openCmdConnection(ip, port);
 		
 //		System.out.println("Log ind p� FTP server.");
@@ -52,28 +50,18 @@ public class Main {
 		
 		user = "root";
 		pw = "";
-		// Log ind
+		
 		ftp.logIn(user, pw);
 		
-		// Print working directory
 		ftp.printWorkDir();
 		
-	    // Åbn data forbindelse
-//		openDataConnection(cmdReader, cmdWriter);
-	    
-//	    // Print filer i working directory
-//		cmdWriter.write("LIST \r\n");
-//		cmdWriter.flush();
-//		System.out.println(cmdReader.readLine());
-//		while (dataReader.ready()) System.out.println(dataReader.readLine());
-//		System.out.println(cmdReader.readLine());
-//		
-//		// Skift working directory
-//		changeWorkDir("pseudofolder");
-//		
-//		// Download fil
-//		System.out.println(downloadFile(cmdReader, cmdWriter, 
-//				"C:/Users/Mogens/Desktop/", "Cmdlineargumenttest.java"));
+		ftp.printWorkDirContents();
+		
+		// Skift working directory
+		ftp.changeWorkDir("pseudofolder");
+		
+		// Download fil
+		System.out.println(ftp.downloadFile("C:/Users/Mogens/Desktop/", "Cmdlineargumenttest.java"));
 		
 		// Close up connections
 //		closeConnections();
