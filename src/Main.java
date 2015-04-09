@@ -13,58 +13,30 @@ import java.net.UnknownHostException;
 import java.util.StringTokenizer;
 
 
-public class Main2 {
+public class Main {
 	static String ip;
 	static int port;
-	
+	static Socket cmdConnection;
+	static BufferedReader cmdReader;
+	static BufferedWriter cmdWriter;
 	static Socket dataSocket;
 	static BufferedReader dataReader;
-	static BufferedWriter dataWriter;
 	static BufferedInputStream fileReader;
 	
 	public static void main(String[] args) throws UnknownHostException, IOException {
 		// Åbn forbindelse til kommandoer
-		Socket cmdConnection = new Socket("localhost", 21);
-		BufferedReader cmdReader = new BufferedReader(new InputStreamReader(cmdConnection.getInputStream()));
-		BufferedWriter cmdWriter = new BufferedWriter(new OutputStreamWriter(cmdConnection.getOutputStream()));
+		openCmdConnection("localhost", 21);
 		
-		System.out.println(cmdReader.readLine());  
-		System.out.println(cmdReader.readLine()); // welcome message is first 3 lines for FileZilla server
-		System.out.println(cmdReader.readLine());
-		
-//		System.out.println(cmdReader.readLine());
 		// Log ind
-//		System.out.println("USER root\r\n");
-		cmdWriter.write("USER root\r\n");
-		cmdWriter.flush();
-		System.out.println(cmdReader.readLine());
-		
-//		System.out.println("PASS \r\n");
-		cmdWriter.write("PASS \r\n");
-		cmdWriter.flush();
-		System.out.println(cmdReader.readLine());
+		logIn("root", " ");
 		
 		// Print working directory
-//		System.out.println("PWD \r\n");
-		cmdWriter.write("PWD \r\n");
-		cmdWriter.flush();
-		System.out.println(cmdReader.readLine());
-		
-//		System.out.println("PASV \r\n");
+		printWorkDir();
 		
 	    // Åbn data forbindelse
 		openDataConnection(cmdReader, cmdWriter);
 	    
 	    // Print filer i working directory
-//		System.out.println("LIST \r\n");
-		cmdWriter.write("LIST \r\n");
-		cmdWriter.flush();
-		System.out.println(cmdReader.readLine());
-		while (dataReader.ready()) System.out.println(dataReader.readLine());
-		System.out.println(cmdReader.readLine());
-		
-		// WOODWKODWOKO
-		openDataConnection(cmdReader, cmdWriter);
 		cmdWriter.write("LIST \r\n");
 		cmdWriter.flush();
 		System.out.println(cmdReader.readLine());
@@ -72,22 +44,80 @@ public class Main2 {
 		System.out.println(cmdReader.readLine());
 		
 		// Skift working directory
-		cmdWriter.write("CWD pseudofolder \r\n");
-		cmdWriter.flush();
-		System.out.println(cmdReader.readLine());
+		changeWorkDir("pseudofolder");
 		
 		// Download fil
 		System.out.println(downloadFile(cmdReader, cmdWriter, 
 				"C:/Users/Mogens/Desktop/", "Cmdlineargumenttest.java"));
 		
 		// Close up connections
+		closeConnections();
+	}
+	
+	private static void changeWorkDir(String folder) throws IOException {
+		cmdWriter.write("CWD "+folder+"\r\n");
+		cmdWriter.flush();
+		System.out.println(cmdReader.readLine());
+	}
+
+	private static void openCmdConnection(String ip, int port) throws UnknownHostException, IOException {
+		cmdConnection = new Socket(ip, port);
+		cmdReader = new BufferedReader(new InputStreamReader(cmdConnection.getInputStream()));
+		cmdWriter = new BufferedWriter(new OutputStreamWriter(cmdConnection.getOutputStream()));
+		
+		System.out.println(cmdReader.readLine());  
+		System.out.println(cmdReader.readLine()); // welcome message is first 3 lines for FileZilla server
+		System.out.println(cmdReader.readLine());
+	}
+
+	private static void logIn(String username, String pass) throws IOException {
+		cmdWriter.write("USER "+username+"\r\n");
+		cmdWriter.flush();
+		System.out.println(cmdReader.readLine());
+		
+		cmdWriter.write("PASS "+pass+"\r\n");
+		cmdWriter.flush();
+		System.out.println(cmdReader.readLine());
+	}
+
+	private static void printWorkDir() throws IOException {
+		cmdWriter.write("PWD \r\n");
+		cmdWriter.flush();
+		System.out.println(cmdReader.readLine());
+	}
+
+	private static void closeConnections() throws IOException {
+		System.out.println("Lukker forbindelser!");
 		cmdReader.close();
 		cmdWriter.close();
 		cmdConnection.close();
 		
+		fileReader.close();
 		dataReader.close();
-		dataWriter.close();
 		dataSocket.close();
+	}
+	
+	private static String downloadFile(BufferedReader cmdReader,
+			BufferedWriter cmdWriter, 
+			String localPath, String fileName) throws UnknownHostException, IOException {
+		
+		openFileTransferConnection(cmdReader, cmdWriter);
+		cmdWriter.write("RETR "+fileName+" \r\n");
+		cmdWriter.flush();
+		
+		String response = cmdReader.readLine();
+		if (!response.startsWith("150")) return response; // return hvis fil ikke findes
+		
+		File targetFile = new File(localPath+fileName);
+		OutputStream targetStream = new FileOutputStream(targetFile);
+		byte[] buffer = new byte[8 * 1024];
+		int bytesRead;
+	
+		while ((bytesRead = fileReader.read(buffer)) != -1) {
+			targetStream.write(buffer, 0, bytesRead);
+		}
+//		System.out.println(cmdReader.readLine());
+		return cmdReader.readLine();
 	}
 	
 	private static void openFileTransferConnection(BufferedReader cmdReader,
@@ -115,31 +145,8 @@ public class Main2 {
 	    
 		dataSocket = new Socket(ip, port);
 		fileReader = new BufferedInputStream(dataSocket.getInputStream());
-	    dataWriter = new BufferedWriter(new OutputStreamWriter(dataSocket.getOutputStream()));
 	}
 	
-	private static String downloadFile(BufferedReader cmdReader,
-			BufferedWriter cmdWriter, 
-			String localPath, String fileName) throws UnknownHostException, IOException {
-		
-		openFileTransferConnection(cmdReader, cmdWriter);
-		cmdWriter.write("RETR "+fileName+" \r\n");
-		cmdWriter.flush();
-		
-		String response = cmdReader.readLine();
-		if (!response.startsWith("150")) return response; // return hvis fil ikke findes
-		
-		File targetFile = new File(localPath+fileName);
-		OutputStream targetStream = new FileOutputStream(targetFile);
-		byte[] buffer = new byte[8 * 1024];
-		int bytesRead;
-	
-		while ((bytesRead = fileReader.read(buffer)) != -1) {
-			targetStream.write(buffer, 0, bytesRead);
-		}
-		System.out.println(cmdReader.readLine());
-		return "File transfered!";
-	}
 	
 	private static void openDataConnection(BufferedReader cmdReader,
 			BufferedWriter cmdWriter) throws UnknownHostException, IOException {
@@ -166,6 +173,5 @@ public class Main2 {
 	    
 		dataSocket = new Socket(ip, port);
 	    dataReader = new BufferedReader(new InputStreamReader(dataSocket.getInputStream()));
-	    dataWriter = new BufferedWriter(new OutputStreamWriter(dataSocket.getOutputStream()));
 	}
 }
