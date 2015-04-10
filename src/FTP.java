@@ -34,7 +34,6 @@ public class FTP implements Runnable {
 	}
 	
 	public ArrayList<String> printWorkDirContents() throws UnknownHostException, IOException {
-		// Print filer i working directory
 		openDataConnection(cmdReader, cmdWriter);
 		cmdWriter.write("LIST \r\n");
 		cmdWriter.flush();
@@ -49,7 +48,6 @@ public class FTP implements Runnable {
 	public void changeWorkDir(String folder) throws IOException {
 		cmdWriter.write("CWD "+folder+"\r\n");
 		cmdWriter.flush();
-//		cmdReader.readLine();
 		System.out.println(cmdReader.readLine());
 	}
 
@@ -70,7 +68,6 @@ public class FTP implements Runnable {
 	public boolean logIn(String username, String pass) throws IOException {
 		cmdWriter.write("USER "+username+"\r\n");
 		cmdWriter.flush();
-//		System.out.println(cmdReader.readLine());
 		cmdReader.readLine();
 		
 		cmdWriter.write("PASS "+pass+"\r\n");
@@ -78,7 +75,6 @@ public class FTP implements Runnable {
 		
 		String response = cmdReader.readLine();
 		if (!response.startsWith("230")) return false; // return hvis fil ikke findes
-//		System.out.println(cmdReader.readLine());
 		return true;
 	}
 
@@ -144,8 +140,7 @@ public class FTP implements Runnable {
 	            + tokenizer.nextToken() + "." + tokenizer.nextToken();
 	        port = Integer.parseInt(tokenizer.nextToken()) * 256
 	            + Integer.parseInt(tokenizer.nextToken());
-	      } catch (Exception e) {
-	        throw new IOException(response);
+	      } catch (Exception e) { System.out.println("Fejl i tokenizer!");
 	      }
 	    }
 	    
@@ -159,7 +154,6 @@ public class FTP implements Runnable {
 		cmdWriter.write("PASV \r\n");
 		cmdWriter.flush();
 		String response = cmdReader.readLine();
-//		System.out.println(response);
 		
 		// Fang IP og port angivet af server
 	    int opening = response.indexOf('(');

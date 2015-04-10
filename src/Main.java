@@ -41,10 +41,6 @@ public class Main {
 		}
 		sc.nextLine();
 		
-//		ip = "localhost";
-//		port = 21;
-//		ftp.openCmdConnection(ip, port);
-		
 		System.out.println("Forsøger at forbinde, vent venligst...");
 		while (!ftp.openCmdConnection(ip, port)) {
 			System.out.println("Fejl i forbindelse. Prøv igen.");
@@ -67,10 +63,6 @@ public class Main {
 		user = sc.nextLine();	
 		System.out.print("Indtast password: ");
 		pw = sc.nextLine();
-		
-//		user = "root";
-//		pw = "";
-//		ftp.logIn(user, pw);
 		
 		System.out.println("Forsøger at logge ind, vent venligst...");
 		while (!ftp.logIn(user, pw)) {
