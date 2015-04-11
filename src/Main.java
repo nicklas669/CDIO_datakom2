@@ -11,7 +11,6 @@ public class Main {
 	static int choice;
 	
 	public static void main(String[] args) throws UnknownHostException, IOException, InterruptedException {
-		boolean valid = true;
 		
 		FTP ftp = new FTP();
 		Thread FTP = new Thread(ftp);
@@ -40,7 +39,6 @@ public class Main {
 				port = sc.nextInt();
 			} catch (InputMismatchException e1) {
 				System.out.println("Portnummer skal være en integer!");
-				valid = false;
 			}
 			System.out.println("Forsøger at forbinde, vent venligst...");
 			sc.nextLine();
