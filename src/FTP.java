@@ -1,4 +1,3 @@
-import java.awt.List;
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -12,14 +11,12 @@ import java.io.OutputStreamWriter;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
-import java.util.Scanner;
 import java.util.StringTokenizer;
 
 
 public class FTP implements Runnable {
 
 	static String ip,user,pw;
-	static Scanner sc;
 	static int port;
 	static Socket cmdConnection;
 	static BufferedReader cmdReader;
