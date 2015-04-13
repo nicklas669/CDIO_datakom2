@@ -17,6 +17,7 @@ public class Main {
 		FTP.start();
 		
 		sc = new Scanner(System.in);
+		
 		System.out.println("** FTP-klient v. 1.0 **");
 		System.out.println("** Forbind til FTP server. **");
 		System.out.print("Indtast IP på server: ");
