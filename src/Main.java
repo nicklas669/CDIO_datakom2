@@ -132,7 +132,6 @@ public class Main {
 				System.out.println("Indtast nyt måleinterval (millisekunder) :");
 				try {
 					sampleRate = sc.nextInt();
-					tempSens.notify();
 					tempSens.setSampleRate(sampleRate);
 					System.out.println("Måleinterval sat til "+sampleRate+".");
 				} catch (InputMismatchException e) {

@@ -65,6 +65,7 @@ public class FTP implements Runnable {
 		cmdWriter = new BufferedWriter(new OutputStreamWriter(cmdConnection.getOutputStream()));
 		
 		while (cmdReader.ready()) cmdReader.readLine(); // læs welcome message fra server
+		cmdReader.readLine();
 		return true;
 	}
 
@@ -77,7 +78,7 @@ public class FTP implements Runnable {
 		cmdWriter.flush();
 		
 		String response = cmdReader.readLine();
-		if (!response.startsWith("230")) return false; // return hvis fil ikke findes
+		if (!response.startsWith("230")) return false; // return hvis bruger ikke findes
 		return true;
 	}
 

@@ -27,14 +27,8 @@ public class TempSensor implements Runnable {
 	@Override
 	public void run() {
 		while (true) {
-//			System.out.println("SAMPLERATE ER :"+sampleRate);
 			if (sampleRate > 0) {
 				temperature = (rnd.nextInt(55)+2)+(1*rnd.nextFloat());
-				try {
-					this.wait(sampleRate);
-				} catch (InterruptedException e1) {
-					e1.printStackTrace();
-				}
 				try {
 					Thread.sleep(sampleRate);
 				} catch (InterruptedException e) {
