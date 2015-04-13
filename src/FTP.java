@@ -28,6 +28,7 @@ public class FTP implements Runnable {
 	
 	@Override
 	public void run() {
+		
 	}
 	
 	public ArrayList<String> printWorkDirContents() throws UnknownHostException, IOException {
@@ -36,6 +37,11 @@ public class FTP implements Runnable {
 		cmdWriter.flush();
 		cmdReader.readLine();
 		dirContents = new ArrayList<String>();
+		try {
+			Thread.sleep(200);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 		while (dataReader.ready()) dirContents.add(dataReader.readLine());
 		cmdReader.readLine();
 		dataSocket.close();
