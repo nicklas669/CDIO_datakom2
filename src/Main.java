@@ -5,12 +5,17 @@ import java.util.Scanner;
 
 public class Main {
 	static String ip,user,pw;
+	static int sampleRate;
 	static int port;
 	static Scanner sc;
 	static String temp, fileDest;
 	static int choice;
 	
 	public static void main(String[] args) throws UnknownHostException, IOException, InterruptedException {
+		
+		TempSensor tempSens = new TempSensor();
+		Thread sensor1 = new Thread(tempSens);
+		sensor1.start();
 		
 		FTP ftp = new FTP();
 		Thread FTP = new Thread(ftp);
@@ -72,7 +77,10 @@ public class Main {
 			System.out.println("1. Liste over filer og mapper i working directory.");
 			System.out.println("2. Skift working directory.");
 			System.out.println("3. Hent en fil fra server.");
-			System.out.println("4. Afslut program.");
+			System.out.println("** Sensor styring **");
+			System.out.println("4. Aflæs temperatursensor.");
+			System.out.println("5. Skift måleinterval på temperatursensor(stop/start).");
+			System.out.println("6. Afslut program.");
 			System.out.print("Valg: ");
 			try {
 				choice = sc.nextInt();
@@ -111,6 +119,30 @@ public class Main {
 				temp = sc.nextLine();
 				break;
 			case 4:
+				for (int i = 0; i<30; i++) System.out.println("");
+				System.out.println("** Aflæs temperatur fra sensor **");
+				System.out.println("Temperaturen er: "+tempSens.getTemperature());
+				System.out.println("Tryk på en tast for at komme tilbage til menuen.");
+				temp = sc.nextLine();
+				break;
+			case 5:
+				System.out.println("** Sæt måleinterval for temperatursensor **");
+				System.out.println("Nuværende måleinterval: " +tempSens.getSampleRate());
+				System.out.println("Sæt måleinterval til 0 for at stoppe sensoren.");
+				System.out.println("Indtast nyt måleinterval (millisekunder) :");
+				try {
+					sampleRate = sc.nextInt();
+					tempSens.notify();
+					tempSens.setSampleRate(sampleRate);
+					System.out.println("Måleinterval sat til "+sampleRate+".");
+				} catch (InputMismatchException e) {
+					System.out.println("Måleinterval skal være en integer.");
+				}
+				sc.nextLine();
+				System.out.println("Tryk på en tast for at komme tilbage til menuen.");
+				temp = sc.nextLine();
+				break;
+			case 6:
 				ftp.closeConnections();
 				System.out.println("Afslutter programmet.");
 				System.exit(0);
