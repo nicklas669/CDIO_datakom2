@@ -17,7 +17,7 @@ public class Main {
 		FTP.start();
 		
 		sc = new Scanner(System.in);
-		System.out.println("** CDIO16 FTP-klient  v. 0.9 **");
+		System.out.println("** FTP-klient v. 1.0 **");
 		System.out.println("** Forbind til FTP server. **");
 		System.out.print("Indtast IP på server: ");
 		ip = sc.nextLine();
@@ -66,7 +66,7 @@ public class Main {
 		
 		while (true) {
 			for (int i = 0; i<30; i++) System.out.println("");
-			System.out.println("** CDIO16 FTP-klient  v. 0.9 **");
+			System.out.println("** FTP-klient v. 1.0 **");
 			System.out.println("Det nuværende working directory er: "+ftp.printWorkDir());
 			System.out.println("1. Liste over filer og mapper i working directory.");
 			System.out.println("2. Skift working directory.");
@@ -86,7 +86,7 @@ public class Main {
 				for (int i = 0; i<30; i++) System.out.println("");
 				System.out.println("** Liste over filer og mapper i working directory **");
 				for (String entry : ftp.printWorkDirContents()) System.out.println(entry);
-				System.out.println("Tryk på en tast for at komme tilbage.");
+				System.out.println("Tryk på en tast for at komme tilbage til menuen.");
 				temp = sc.nextLine();
 				break;
 			case 2:
@@ -95,18 +95,18 @@ public class Main {
 				System.out.print("Indtast navnet på mappen for det nye working directory: ");
 				temp = sc.nextLine();
 				ftp.changeWorkDir(temp);
-				System.out.println("Tryk på en tast for at komme tilbage.");
+				System.out.println("Tryk på en tast for at komme tilbage til menuen.");
 				temp = sc.nextLine();
 				break;
 			case 3:
 				for (int i = 0; i<30; i++) System.out.println("");
 				System.out.println("** Hent en fil fra server **");
-				System.out.println("Indtast navnet på filen der skal hentes fra working directory: ");
+				System.out.println("Indtast navnet på filen(inkl. filtype) der skal hentes fra working directory (f.eks. Tekstfil.txt): ");
 				temp = sc.nextLine();
-				System.out.println("Indtast stien til den lokale destination for filen(f.eks C:/Users/Brugernavn/Desktop/): ");
+				System.out.println("Indtast stien til den lokale destination for filen(f.eks. C:/Users/Brugernavn/Desktop/): ");
 				fileDest = sc.nextLine();
 				System.out.println(ftp.downloadFile(fileDest, temp));
-				System.out.println("Tryk på en tast for at komme tilbage.");
+				System.out.println("Tryk på en tast for at komme tilbage til menuen.");
 				temp = sc.nextLine();
 				break;
 			case 4:
