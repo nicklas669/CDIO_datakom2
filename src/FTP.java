@@ -65,7 +65,6 @@ public class FTP implements Runnable {
 		cmdWriter = new BufferedWriter(new OutputStreamWriter(cmdConnection.getOutputStream()));
 		
 		while (cmdReader.ready()) cmdReader.readLine(); // læs welcome message fra server
-//		cmdReader.readLine();
 		return true;
 	}
 

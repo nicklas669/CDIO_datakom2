@@ -63,7 +63,7 @@ public class gui  extends JPanel {
     int lastsubstate;
     int lastState;
     int fontScale;
-    int clickableElements=61; //total elements +1. ie 26 elements = 27
+    int clickableElements=62; //total elements +1. ie 26 elements = 27
     int[] killMeX1 = new int[clickableElements];
     int[] killMeY1 = new int[clickableElements];
     int[] killMeX2 = new int[clickableElements];
@@ -528,14 +528,14 @@ inputField_refill_barcode.setText(buffer);
             
          //Drawing engine. state er udgangspunkt..
             
-            super.paintComponent(g);     // tegn baggrunden pï¿½ panelet
+            super.paintComponent(g);     // tegn baggrunden på panelet
             	
             //Draw background
             g.setColor(bgcolor);
             g.fillRect(0,0,Swidth,Sheight);
             g.setColor(Color.WHITE);
             g.setFont(new Font(stdFont, Font.PLAIN, fontScale)); 
-            System.out.println(r_itemid[0]);
+            System.out.println("OMFG JAVA .. "+r_itemid[0]);
             
             if(state!=lastState){
                 inputField_login_user.setVisible(false);
@@ -716,6 +716,13 @@ inputField_refill_barcode.setText(buffer);
                 for (int i = 0; i < Cart.size(); i++) {
 			g.drawString((Cart.get(i).toString()),0,fontScale*(15+i));
 		} 
+                g.drawString("< Tjek varer ud >",0,fontScale*14);
+                    killMeX1[61]=0;
+                    killMeY1[61]=fontScale*13;
+                    killMeX2[61]=Swidth/2-fontScale*4;
+                    killMeY2[61]=fontScale*15;
+                     killMeZ[61]=111;
+                        
                 if(substate!=lastsubstate){
                     inputField_service_item.setVisible(false);
                         inputField_service_container.setVisible(false);
@@ -770,7 +777,7 @@ inputField_refill_barcode.setText(buffer);
                      if(substate==0){
                     
                     if(t_itemid=='\n'||t_itemid==0){
-                        g.drawString("Vï¿½lg venligst en beholder",Swidth/2,fontScale*11);
+                        g.drawString("Vælg venligst en beholder",Swidth/2,fontScale*11);
                     }else{
                         //Vejning
                         substate=1;
@@ -779,7 +786,7 @@ inputField_refill_barcode.setText(buffer);
                     
                     }else if(substate==1){
                         //vejning
-                        g.drawString("Sï¿½t venligst varer pï¿½ vï¿½gt",Swidth/2,fontScale*11);
+                        g.drawString("Sæt venligst varer på vægt",Swidth/2,fontScale*11);
                        //String weight="fail";
                         try {
                         gotWeight=vejning("S");
@@ -835,9 +842,9 @@ if(substate!=1){
                         Logger.getLogger(gui.class.getName()).log(Level.SEVERE, null, ex);
                     }
 lastsubstate=substate;
-if(substate!=0){
+/*if(substate!=0){
  timer.schedule (new SayHello(), 1000);
-}
+}*/
 repaint();
 }
                 paintMenSub(g);
@@ -1010,7 +1017,7 @@ repaint();
             
             if(state==1123){
                 //Opfyld
-                //-vï¿½lg whole/part 
+                //-vælg whole/part 
                 paintMenSub(g);
                         g.drawString("Refill",Swidth/2-fontScale*6,fontScale*4);
                 g.drawString("ItemID:",Swidth/2-fontScale*6,fontScale*5);
@@ -1604,6 +1611,91 @@ repaint();
                             if(i==0){
                                 //loginknap
                                 verifyUser();
+                            }else if(i==61){
+                                state=111;
+                                String query1;
+                                String query2;
+                                String query3;
+                                int temp_itemid=0;
+                                int temp_itemid2=0;
+                                int temp_weight=0;
+                                int temp_weight2=0;
+                                int newWeight=0; 
+                                int mweight=0;
+                                String temp0[];
+                                String temp[];
+                                String temp2[];
+                                String temp3[];
+                                String temp4[];
+                                String temp5[];
+                                String temp6[];
+                                for (int iz = 0; iz < Cart.size(); iz++) {
+                                    temp0=(Cart.get(iz).toString()).split("I:");
+                                    System.out.println(temp0[1]+" -0");
+                                    temp=temp0[1].split(".B:");
+                                    System.out.println(temp[0]+" -1");
+                                    temp2=temp[0].split("-W:");
+                                    temp3=temp2;
+                                    System.out.println(temp3[1]+" -3");
+                                    System.out.println(temp3[0]+" -4");
+                                    temp_weight=Integer.parseInt(temp3[1]);
+                                    System.out.println(temp_weight+" -5");
+                                    temp4=temp3[0].split("\\[");
+                                      temp5=temp4[1].split("\\]");
+                                      temp_itemid=Integer.parseInt(temp5[0]);
+                                      
+                                    System.out.println(temp_itemid+" -6");
+                                    if(temp.length > 1){
+                                         //the thingy haz a container
+                                    temp4=temp[1].split("-W:");
+                                      temp_weight2=Integer.parseInt(temp4[1]);
+                                    System.out.println(temp_weight2+" -5");
+                                      temp5=temp4[0].split("\\[");
+                                      temp6=temp5[1].split("\\]");
+                                      temp_itemid2=Integer.parseInt(temp6[0]);
+                                    System.out.println(temp_itemid2+" -7");
+                                     } 
+			//g.drawString((Cart.get(i).toString()),0,fontScale*(15+i));
+                                    query1="date,user,itemid,weight,price"; 
+                                    query2="(select now()),'"+usrId+"','"+temp_itemid+"','"+temp_weight+"','"+0+"'";
+                                    System.out.println(query1);
+                                    System.out.println(query2);
+                                        insert("log",query1,query2);
+                                        if(temp.length > 1){
+            ResultSet rs=null;
+            Statement st; 
+                                    try {
+                                        st = conn.createStatement();
+                                    
+            query3="SELECT * FROM items WHERE id='"+temp_itemid+"' LIMIT 0,1";         
+            rs = st.executeQuery(query3);
+            while (rs.next())
+      {  
+          //System.err.println(itemidto+" .e. ");
+        mweight = rs.getInt("weight"); 
+      }
+            newWeight=mweight-temp_weight;
+                                        update("UPDATE items SET weight='"+newWeight+"' WHERE id='"+temp_itemid+"'");
+                                    
+                                         update("UPDATE items SET deletedDate=(select now()) WHERE deletedDate IS NULL AND parent='"+temp_itemid2+"' ORDER BY id LIMIT 1");       
+                                  
+                                    query1="date,user,itemid,weight,price"; 
+                                    query2="(select now()),'"+usrId+"','"+temp_itemid2+"','"+temp_weight+"','"+0+"'";
+                                    System.out.println(query1);
+                                    System.out.println(query2);
+                                        insert("log",query1,query2);
+                                      
+                                    } catch (SQLException ex) {
+                                        Logger.getLogger(gui.class.getName()).log(Level.SEVERE, null, ex);
+                                    }
+                                }else{
+                                         update("UPDATE items SET deletedDate=(select now()) WHERE deletedDate IS NULL AND parent='"+temp_itemid+"' ORDER BY id LIMIT 1");
+                                    
+                                        }
+                                }
+                                        Cart.clear();
+                                
+                                repaint();
                             }
                             else if(i==1){
                                 //configknap
