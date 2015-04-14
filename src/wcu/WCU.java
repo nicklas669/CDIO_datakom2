@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package inventory.management;
+package wcu;
 
 import java.awt.Color;
 import java.awt.Font;
@@ -54,7 +54,7 @@ import java.util.ArrayList;
 
 
 
-public class gui  extends JPanel {
+public class WCU  extends JPanel {
     ArrayList Cart = new ArrayList();
     int Swidth;
     int Sheight;
@@ -479,7 +479,7 @@ class SayHello extends TimerTask {
         try {
            gotWeight= vejning("s");
         } catch (IOException ex) {
-            Logger.getLogger(gui.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(WCU.class.getName()).log(Level.SEVERE, null, ex);
         }
  timer.schedule (new SayHello(), 1000);
        repaint();
@@ -528,14 +528,14 @@ inputField_refill_barcode.setText(buffer);
             
          //Drawing engine. state er udgangspunkt..
             
-            super.paintComponent(g);     // tegn baggrunden på panelet
+            super.paintComponent(g);     // tegn baggrunden pï¿½ panelet
             	
             //Draw background
             g.setColor(bgcolor);
             g.fillRect(0,0,Swidth,Sheight);
             g.setColor(Color.WHITE);
             g.setFont(new Font(stdFont, Font.PLAIN, fontScale)); 
-            System.out.println("OMFG JAVA .. "+r_itemid[0]);
+            System.out.println(+r_itemid[0]);
             
             if(state!=lastState){
                 inputField_login_user.setVisible(false);
@@ -747,7 +747,7 @@ inputField_refill_barcode.setText(buffer);
                         try {
                         vejning("Z"); //tare the weigth
                     } catch (IOException ex) {
-                        Logger.getLogger(gui.class.getName()).log(Level.SEVERE, null, ex);
+                        Logger.getLogger(WCU.class.getName()).log(Level.SEVERE, null, ex);
                     }
                         lastsubstate=substate;
                         repaint();
@@ -777,7 +777,7 @@ inputField_refill_barcode.setText(buffer);
                      if(substate==0){
                     
                     if(t_itemid=='\n'||t_itemid==0){
-                        g.drawString("Vælg venligst en beholder",Swidth/2,fontScale*11);
+                        g.drawString("Vï¿½lg venligst en beholder",Swidth/2,fontScale*11);
                     }else{
                         //Vejning
                         substate=1;
@@ -786,12 +786,12 @@ inputField_refill_barcode.setText(buffer);
                     
                     }else if(substate==1){
                         //vejning
-                        g.drawString("Sæt venligst varer på vægt",Swidth/2,fontScale*11);
+                        g.drawString("Sï¿½t venligst varer pï¿½ vï¿½gt",Swidth/2,fontScale*11);
                        //String weight="fail";
                         try {
                         gotWeight=vejning("S");
                     } catch (IOException ex) {
-                        Logger.getLogger(gui.class.getName()).log(Level.SEVERE, null, ex);
+                        Logger.getLogger(WCU.class.getName()).log(Level.SEVERE, null, ex);
                     } 
                     g.drawString(gotWeight+" g",Swidth/2,fontScale*13);
                     g.drawString("< V >",Swidth/2,fontScale*15);
@@ -839,7 +839,7 @@ if(substate!=1){
    try {
                         vejning("Z"); //tare the weigth
                     } catch (IOException ex) {
-                        Logger.getLogger(gui.class.getName()).log(Level.SEVERE, null, ex);
+                        Logger.getLogger(WCU.class.getName()).log(Level.SEVERE, null, ex);
                     }
 lastsubstate=substate;
 /*if(substate!=0){
@@ -898,7 +898,7 @@ repaint();
                         try {
                         gotWeight=vejning("S");
                     } catch (IOException ex) {
-                        Logger.getLogger(gui.class.getName()).log(Level.SEVERE, null, ex);
+                        Logger.getLogger(WCU.class.getName()).log(Level.SEVERE, null, ex);
                     } 
                         
                     g.drawString(gotWeight+" g",Swidth/2,fontScale*14);
@@ -937,7 +937,7 @@ if(substate!=1){
     try {
                         vejning("Z"); //tare the weigth
                     } catch (IOException ex) {
-                        Logger.getLogger(gui.class.getName()).log(Level.SEVERE, null, ex);
+                        Logger.getLogger(WCU.class.getName()).log(Level.SEVERE, null, ex);
                     }
 lastsubstate=substate;
 if(substate!=0){
@@ -993,7 +993,7 @@ repaint();
                         try {
                         gotWeight=vejning("S");
                     } catch (IOException ex) {
-                        Logger.getLogger(gui.class.getName()).log(Level.SEVERE, null, ex);
+                        Logger.getLogger(WCU.class.getName()).log(Level.SEVERE, null, ex);
                     } 
                         
                     g.drawString(gotWeight+" g",Swidth/2,fontScale*14);
@@ -1017,7 +1017,7 @@ repaint();
             
             if(state==1123){
                 //Opfyld
-                //-vælg whole/part 
+                //-vï¿½lg whole/part 
                 paintMenSub(g);
                         g.drawString("Refill",Swidth/2-fontScale*6,fontScale*4);
                 g.drawString("ItemID:",Swidth/2-fontScale*6,fontScale*5);
@@ -1098,7 +1098,7 @@ repaint();
 try {
                         vejning("Z"); //tare the weigth
                     } catch (IOException ex) {
-                        Logger.getLogger(gui.class.getName()).log(Level.SEVERE, null, ex);
+                        Logger.getLogger(WCU.class.getName()).log(Level.SEVERE, null, ex);
                     }
 lastsubstate=substate;
 if(substate!=0){
@@ -1112,7 +1112,7 @@ repaint();
                         try {
                         gotWeight=vejning("S");
                     } catch (IOException ex) {
-                        Logger.getLogger(gui.class.getName()).log(Level.SEVERE, null, ex);
+                        Logger.getLogger(WCU.class.getName()).log(Level.SEVERE, null, ex);
                     } 
                         
                     g.drawString(gotWeight+" g",Swidth/2,fontScale*14);
@@ -1458,7 +1458,7 @@ repaint();
     
     JFrame refer;
         
-        public gui(JFrame vindue) {
+        public WCU(JFrame vindue) {
 		try {  
 			jbInit(vindue); 
 		}
@@ -1686,7 +1686,7 @@ repaint();
                                         insert("log",query1,query2);
                                       
                                     } catch (SQLException ex) {
-                                        Logger.getLogger(gui.class.getName()).log(Level.SEVERE, null, ex);
+                                        Logger.getLogger(WCU.class.getName()).log(Level.SEVERE, null, ex);
                                     }
                                 }else{
                                          update("UPDATE items SET deletedDate=(select now()) WHERE deletedDate IS NULL AND parent='"+temp_itemid+"' ORDER BY id LIMIT 1");
