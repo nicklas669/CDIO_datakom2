@@ -1,0 +1,5 @@
+1, Ost
+2, Bacon
+3, Oksekød
+4, Burgerbolle
+5, Salat

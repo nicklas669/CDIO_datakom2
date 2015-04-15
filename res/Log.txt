@@ -1,0 +1,2 @@
+Dato, Tid, Operatørnummer, varenummer, afvejning (i kg), tilbage på lager (i kg)
+15-04-2015, 21:45, 1, 2, 1, 5
