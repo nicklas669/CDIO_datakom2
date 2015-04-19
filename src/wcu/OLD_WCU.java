@@ -54,7 +54,7 @@ import java.util.ArrayList;
 
 
 
-public class WCU  extends JPanel {
+public class OLD_WCU  extends JPanel {
     ArrayList Cart = new ArrayList();
     int Swidth;
     int Sheight;
@@ -479,7 +479,7 @@ class SayHello extends TimerTask {
         try {
            gotWeight= vejning("s");
         } catch (IOException ex) {
-            Logger.getLogger(WCU.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(OLD_WCU.class.getName()).log(Level.SEVERE, null, ex);
         }
  timer.schedule (new SayHello(), 1000);
        repaint();
@@ -747,7 +747,7 @@ inputField_refill_barcode.setText(buffer);
                         try {
                         vejning("Z"); //tare the weigth
                     } catch (IOException ex) {
-                        Logger.getLogger(WCU.class.getName()).log(Level.SEVERE, null, ex);
+                        Logger.getLogger(OLD_WCU.class.getName()).log(Level.SEVERE, null, ex);
                     }
                         lastsubstate=substate;
                         repaint();
@@ -791,7 +791,7 @@ inputField_refill_barcode.setText(buffer);
                         try {
                         gotWeight=vejning("S");
                     } catch (IOException ex) {
-                        Logger.getLogger(WCU.class.getName()).log(Level.SEVERE, null, ex);
+                        Logger.getLogger(OLD_WCU.class.getName()).log(Level.SEVERE, null, ex);
                     } 
                     g.drawString(gotWeight+" g",Swidth/2,fontScale*13);
                     g.drawString("< V >",Swidth/2,fontScale*15);
@@ -839,7 +839,7 @@ if(substate!=1){
    try {
                         vejning("Z"); //tare the weigth
                     } catch (IOException ex) {
-                        Logger.getLogger(WCU.class.getName()).log(Level.SEVERE, null, ex);
+                        Logger.getLogger(OLD_WCU.class.getName()).log(Level.SEVERE, null, ex);
                     }
 lastsubstate=substate;
 /*if(substate!=0){
@@ -898,7 +898,7 @@ repaint();
                         try {
                         gotWeight=vejning("S");
                     } catch (IOException ex) {
-                        Logger.getLogger(WCU.class.getName()).log(Level.SEVERE, null, ex);
+                        Logger.getLogger(OLD_WCU.class.getName()).log(Level.SEVERE, null, ex);
                     } 
                         
                     g.drawString(gotWeight+" g",Swidth/2,fontScale*14);
@@ -937,7 +937,7 @@ if(substate!=1){
     try {
                         vejning("Z"); //tare the weigth
                     } catch (IOException ex) {
-                        Logger.getLogger(WCU.class.getName()).log(Level.SEVERE, null, ex);
+                        Logger.getLogger(OLD_WCU.class.getName()).log(Level.SEVERE, null, ex);
                     }
 lastsubstate=substate;
 if(substate!=0){
@@ -993,7 +993,7 @@ repaint();
                         try {
                         gotWeight=vejning("S");
                     } catch (IOException ex) {
-                        Logger.getLogger(WCU.class.getName()).log(Level.SEVERE, null, ex);
+                        Logger.getLogger(OLD_WCU.class.getName()).log(Level.SEVERE, null, ex);
                     } 
                         
                     g.drawString(gotWeight+" g",Swidth/2,fontScale*14);
@@ -1098,7 +1098,7 @@ repaint();
 try {
                         vejning("Z"); //tare the weigth
                     } catch (IOException ex) {
-                        Logger.getLogger(WCU.class.getName()).log(Level.SEVERE, null, ex);
+                        Logger.getLogger(OLD_WCU.class.getName()).log(Level.SEVERE, null, ex);
                     }
 lastsubstate=substate;
 if(substate!=0){
@@ -1112,7 +1112,7 @@ repaint();
                         try {
                         gotWeight=vejning("S");
                     } catch (IOException ex) {
-                        Logger.getLogger(WCU.class.getName()).log(Level.SEVERE, null, ex);
+                        Logger.getLogger(OLD_WCU.class.getName()).log(Level.SEVERE, null, ex);
                     } 
                         
                     g.drawString(gotWeight+" g",Swidth/2,fontScale*14);
@@ -1458,7 +1458,7 @@ repaint();
     
     JFrame refer;
         
-        public WCU(JFrame vindue) {
+        public OLD_WCU(JFrame vindue) {
 		try {  
 			jbInit(vindue); 
 		}
@@ -1686,7 +1686,7 @@ repaint();
                                         insert("log",query1,query2);
                                       
                                     } catch (SQLException ex) {
-                                        Logger.getLogger(WCU.class.getName()).log(Level.SEVERE, null, ex);
+                                        Logger.getLogger(OLD_WCU.class.getName()).log(Level.SEVERE, null, ex);
                                     }
                                 }else{
                                          update("UPDATE items SET deletedDate=(select now()) WHERE deletedDate IS NULL AND parent='"+temp_itemid+"' ORDER BY id LIMIT 1");

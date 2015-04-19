@@ -17,7 +17,7 @@ import javax.swing.*;
  *
  * @author john doe
  */
-public class Main_WCU {
+public class OLD_Main_WCU {
 
     /**
      * @param args the command line arguments
@@ -28,7 +28,7 @@ public class Main_WCU {
          
         
         JFrame vindue = new JFrame( "gui.java" );
-        vindue.add( new WCU(vindue) );
+        vindue.add( new OLD_WCU(vindue) );
         GraphicsDevice gd = GraphicsEnvironment.getLocalGraphicsEnvironment().getDefaultScreenDevice();
         Swidth = gd.getDisplayMode().getWidth();
         Sheight = gd.getDisplayMode().getHeight();
