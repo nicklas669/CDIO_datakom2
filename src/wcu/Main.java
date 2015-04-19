@@ -23,35 +23,71 @@ public class Main {
 	public static void main(String[] args) throws InterruptedException, IOException {
 		readStoreFile("res/store.txt");
 
+		// Opens connection to scale
 		while (!openConnection("localhost", 4567)) {
 			System.out.println("Fejl i forbindelse, prøver igen...");
 			Thread.sleep(500);
 		}
 
-
+		// Ask for operator number
 		writeRM20ToScale(4, "Operatør nr?", " ", " ");
 		readRM20FromScale();
 
-		
+		// Ask for item number
 		do {
 			writeRM20ToScale(4, "Vare nr?", " ", " ");
 			// Add check if an integer is received...
 			item = Integer.valueOf(readRM20FromScale());
 		} while (!itemExists(item));
 		
+		// Write item name to Scale and ask for operator acceptance
+		
+		// Instruct operator to place bowl/container and acknowledge
+		
+		// Tare weight and register tara
+		
+		// Instruct operator to top up product and acknowledge
+		
+		// Register netto
+		
+		// Instruct operator to remove tara and netto 
+		
+		// Tare weight
+		
+		// Register minus brutto
+		
+		// Write "BRUTTO KONTROL OK" if that is the case. Else?
+		
+		// Afskriv mængde på lager og opdater historik
+		
+		// Start forfra
+		
 	}
 
 
 	private static boolean itemExists(int item) {
 		if (!items.containsKey(item)) {
+			writeP111ToScale("Vare nr. "+item+" ikke fundet!");
 			System.out.println("Vare nr. "+item+" ikke fundet!");
 			// Write response to Scale with P111?
 			return false;
 		}
 		else { 
+			writeP111ToScale("Vare nr. "+item+" "+ "("+items.get(item)+") fundet.");
 			System.out.println("Vare nr. "+item+" "+ "("+items.get(item)+") fundet.");
 			// Write response to Scale with P111?
 			return true;
+		}
+	}
+
+
+	private static void writeP111ToScale(String string) {
+		try {
+//			outToScale.writeBytes("P111 "+string+"\r\n");
+			outToScale.writeBytes("P111 \""+string+"\"\r\n");
+			System.out.println("P111: "+inFromScale.readLine());
+		} catch (IOException e) {
+			e.printStackTrace();
 		}
 	}
 
