@@ -24,10 +24,25 @@ public class Main {
 		readStoreFile("res/store.txt");
 
 		// Opens connection to scale
+		// Real Mettler Scale has IP 169.254.2.2 and port 8000
 		while (!openConnection("localhost", 4567)) {
 			System.out.println("Fejl i forbindelse, prøver igen...");
 			Thread.sleep(500);
 		}
+		
+		// Der udsendes I4 A "3154308" når vægten starter...
+		
+		
+//		outToServer.writeBytes("RM20 4 text1 text2 text3\r\n");
+//		outToServer.writeBytes("RM20 4 \"text1\" \"text2\" \"text3\"\r\n");
+
+//		outToServer.writeBytes("RM20 4 \"Indtast operatoernummer\" \"\" \"\"\r\n");  // Virker fint på vægt!
+//		outToServer.writeBytes("P111 \"\"\r\n");
+//		outToServer.writeBytes("D \"1234567\" \r\n"); // Virker på vægt men 7 karakterer maks.
+//		outToServer.writeBytes("DW\r\n");
+//		System.out.println(inFromServer.readLine());
+//		outToServer.writeBytes("S\r\n"); // Virker på vægt
+
 
 		// Ask for operator number
 		writeRM20ToScale(4, "Operatør nr?", " ", " ");
