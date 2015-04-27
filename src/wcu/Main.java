@@ -19,34 +19,39 @@ public class Main {
 	static String response = "";
 	static boolean RM20_status = false;
 	static int item = -1;
+	static boolean realScale = false;
+	static int operator = 0;
+	static double tara, brutto;
 
 	public static void main(String[] args) throws InterruptedException, IOException {
 		readStoreFile("res/store.txt");
 
 		// Opens connection to scale
-		// Real Mettler Scale has IP 169.254.2.2 and port 8000
+		// Real Mettler Scale has IP 169.254.2.2 and uses port 8000
 		while (!openConnection("localhost", 4567)) {
 			System.out.println("Fejl i forbindelse, prøver igen...");
 			Thread.sleep(500);
 		}
-		
+
 		// Der udsendes I4 A "3154308" når vægten starter...
+		if (realScale) inFromScale.readLine(); // Read startup message from Scale
+
+		//		outToServer.writeBytes("RM20 4 text1 text2 text3\r\n");
+		//		outToServer.writeBytes("RM20 4 \"text1\" \"text2\" \"text3\"\r\n");
+
+		//		outToServer.writeBytes("RM20 4 \"Indtast operatoernummer\" \"\" \"\"\r\n");  // Virker fint på vægt!
+		//		outToServer.writeBytes("P111 \"\"\r\n");
+		//		outToServer.writeBytes("D \"1234567\" \r\n"); // Virker på vægt men 7 karakterer maks.
+		//		outToServer.writeBytes("DW\r\n");
+		//		System.out.println(inFromServer.readLine());
+		//		outToServer.writeBytes("S\r\n"); // Virker på vægt
+
 		
-		
-//		outToServer.writeBytes("RM20 4 text1 text2 text3\r\n");
-//		outToServer.writeBytes("RM20 4 \"text1\" \"text2\" \"text3\"\r\n");
-
-//		outToServer.writeBytes("RM20 4 \"Indtast operatoernummer\" \"\" \"\"\r\n");  // Virker fint på vægt!
-//		outToServer.writeBytes("P111 \"\"\r\n");
-//		outToServer.writeBytes("D \"1234567\" \r\n"); // Virker på vægt men 7 karakterer maks.
-//		outToServer.writeBytes("DW\r\n");
-//		System.out.println(inFromServer.readLine());
-//		outToServer.writeBytes("S\r\n"); // Virker på vægt
-
-
 		// Ask for operator number
-		writeRM20ToScale(4, "Operatør nr?", " ", " ");
-		readRM20FromScale();
+		if (operator == 0) {
+			writeRM20ToScale(4, "Operatoer nr?", " ", " ");
+			operator = Integer.valueOf(readRM20FromScale());
+		}
 
 		// Ask for item number
 		do {
@@ -54,41 +59,88 @@ public class Main {
 			// Add check if an integer is received...
 			item = Integer.valueOf(readRM20FromScale());
 		} while (!itemExists(item));
-		
+
 		// Write item name to Scale and ask for operator acceptance
+		writeRM20ToScale(8, items.get(item)+ " - Ja/nej?", " ", " ");
+		response = readRM20FromScale();
+		if ("JA".equals(response.trim().toUpperCase())) System.out.println("DER BLEV SAGT JA!!");
+		else System.out.println("Der blev sgu sagt nej tak til den vare!!");
 		
 		// Instruct operator to place bowl/container and acknowledge
+		writeRM20ToScale(8, "Saet skaal og svar OK", " ", " ");
+		response = readRM20FromScale();
+		if ("OK".equals(response.trim().toUpperCase())) System.out.println("DER BLEV SAGT OK!!");
+		else System.out.println("Der blev sgu svaret noget random shit i stedet for OK!!");
 		
 		// Tare weight and register tara
+		tareScale();
+		//evt skriv P111 her om at vægten er tareret?
+		tara = Double.valueOf(readTare().split(" ")[7]);
 		
 		// Instruct operator to top up product and acknowledge
+		writeRM20ToScale(8, "Afvej og svar OK", " ", " ");
+		response = readRM20FromScale();
+		if ("OK".equals(response.trim().toUpperCase())) System.out.println("DER BLEV SAGT OK!!");
+		else System.out.println("Der blev sgu svaret noget random shit i stedet for OK!!");
 		
-		// Register netto
-		
+		// Register netto (brutto?)
+		brutto = Double.valueOf(readBruttoFromScale().split(" ")[7]);
+//		System.out.println(brutto);
+		//evt skriv P111 her om at brutto er registreret?
+
 		// Instruct operator to remove tara and netto 
+		writeRM20ToScale(8, "Fjern skaal og svar OK", " ", " ");
+		response = readRM20FromScale();
 		
 		// Tare weight
-		
+
 		// Register minus brutto
-		
+
 		// Write "BRUTTO KONTROL OK" if that is the case. Else?
-		
+
 		// Afskriv mængde på lager og opdater historik
-		
+
 		// Start forfra
-		
+
 	}
 
+	private static String readBruttoFromScale() {
+		try {
+			outToScale.writeBytes("S\r\n");
+			return inFromScale.readLine();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	private static String readTare() {
+		try {
+			return inFromScale.readLine();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	private static void tareScale() {
+		try {
+			outToScale.writeBytes("T\r\n");
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
 
 	private static boolean itemExists(int item) {
 		if (!items.containsKey(item)) {
-			writeP111ToScale("Vare nr. "+item+" ikke fundet!");
+			//			writeP111ToScale("Vare nr. "+item+" ikke fundet!");
 			System.out.println("Vare nr. "+item+" ikke fundet!");
 			// Write response to Scale with P111?
 			return false;
 		}
 		else { 
-			writeP111ToScale("Vare nr. "+item+" "+ "("+items.get(item)+") fundet.");
+			//			writeP111ToScale("Vare nr. "+item+" "+ "("+items.get(item)+") fundet.");
 			System.out.println("Vare nr. "+item+" "+ "("+items.get(item)+") fundet.");
 			// Write response to Scale with P111?
 			return true;
@@ -98,7 +150,7 @@ public class Main {
 
 	private static void writeP111ToScale(String string) {
 		try {
-//			outToScale.writeBytes("P111 "+string+"\r\n");
+			//			outToScale.writeBytes("P111 "+string+"\r\n");
 			outToScale.writeBytes("P111 \""+string+"\"\r\n");
 			System.out.println("P111: "+inFromScale.readLine());
 		} catch (IOException e) {
@@ -114,7 +166,6 @@ public class Main {
 	private static String readRM20FromScale() throws IOException {
 		while (!RM20_status) {
 			response = inFromScale.readLine();
-			//			System.out.println(response);
 			if (response.startsWith("RM20 B")) {
 				System.out.println("Command executed, user input follows.");
 				RM20_status = true;
@@ -151,9 +202,9 @@ public class Main {
 	/**
 	 * Sends an RM20 command to the scale.
 	 * @param type - 4 = integer, 8 = alphanum
-	 * @param text1 - The string to be displayed on the scale.
-	 * @param text2
-	 * @param text3
+	 * @param text1 - The string to be displayed on the scale (max. 24 chars).
+	 * @param text2 - text2 Text/value to be displayed as default, and to be overwritten by user input.
+	 * @param text3 - Unit (max. 7 characters).
 	 */
 	private static void writeRM20ToScale(int type, String text1, String text2,
 			String text3) {

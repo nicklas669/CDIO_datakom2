@@ -8,13 +8,10 @@ package wcu;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics; 
-import java.awt.Point;
-import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.lang.reflect.Array;
 import java.sql.Connection;
 import java.util.ArrayList;
 import javax.swing.AbstractAction;
@@ -22,7 +19,6 @@ import javax.swing.ActionMap;
 import javax.swing.InputMap;
 import javax.swing.JComponent;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.KeyStroke; 
 import java.util.Timer;
@@ -31,13 +27,11 @@ import java.util.TimerTask;
 import java.io.*;
 import java.net.*;
 
-import java.sql.Connection;
 import java.sql.Date;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -46,7 +40,6 @@ import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 
-import java.util.ArrayList;
 /**
  *
  * @author john doe
@@ -467,7 +460,7 @@ inputField_service_item.setText(r_barcode[0]);
     int temp;
         temp = Integer.parseInt(response);
         response=Integer.toString(temp);*/
-    
+    s.close();
     return response;
     }
       
