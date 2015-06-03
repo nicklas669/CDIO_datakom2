@@ -47,12 +47,43 @@ public class Main {
 		//		outToServer.writeBytes("S\r\n"); // Virker på vægt
 
 		
-		// Ask for operator number
+		// TODO: VALIDATION AF OPERATOR ID
+		// 3. BED OM OPERATØR ID
 		if (operator == 0) {
 			writeRM20ToScale(4, "Operatoer nr?", " ", " ");
 			operator = Integer.valueOf(readRM20FromScale());
 		}
+		
+		// TODO: 4. VÆGTEN SKAL SVARE MED OPERATØR NAVN SOM SÅ SKAL GODKENDES
 
+		// TODO: 5. OPERATØR INDTASTER PRODUKTBATCH NUMMER
+		
+		// TODO: 6. VÆGTEN SVARER TILBAGE MED NAVN PÅ RECEPT DER SKAL PRODUCERES (f.eks.: saltvand med citron)
+		
+		// TODO: 7. OPERATØR KONTROLLERER AT VÆGT ER UBELASTET OG TRYKKER OK
+		
+		// TODO: 8. SYSTEMET SÆTTER PRODUKTBATCH NUMMERETS STATUS TIL "UNDER PRODUKTION"
+		
+		// TODO: 9. VÆGTEN TARERES
+		
+		// TODO: 10. VÆGTEN BEDER OM FØRSTE TARA BEHOLDER
+		
+		// TODO: 11. OPERATØR PLACERER FØRSTE TARABEHOLDER OG TRYKKER "OK"
+		
+		// TODO: 12. VÆGTEN AF TARABEHOLDER REGISTRERES
+		
+		// TODO: 13. VÆGTEN TARERES
+		
+		// TODO: 14. VÆGTEN BEDER OM RAAVAREBATCH NUMMER PÅ FØRSTE RÅVARE
+		
+		// TODO: 15. OPERATØREN AFVEJER OP TIL DEN ØNSKEDE MÆNGDE OG TRYKKER "OK"
+		
+		// TODO: 16. PKT. 7-14 GENTAGES INDTIL ALLE RÅVARER ER AFVEJET
+		
+		// TODO: 17. SYSTEMET SÆTTER PRODUKTBATCH NUMMERETS STATUS TIL "AFSLUTTET"
+		
+		// TODO: 18. DET KAN HEREFTER GENOPTAGES AF EN NY OPERATØR.
+		
 		// Ask for item number
 		do {
 			writeRM20ToScale(4, "Vare nr?", " ", " ");
@@ -91,16 +122,7 @@ public class Main {
 		// Instruct operator to remove tara and netto 
 		writeRM20ToScale(8, "Fjern skaal og svar OK", " ", " ");
 		response = readRM20FromScale();
-		
-		// Tare weight
 
-		// Register minus brutto
-
-		// Write "BRUTTO KONTROL OK" if that is the case. Else?
-
-		// Afskriv mængde på lager og opdater historik
-
-		// Start forfra
 
 	}
 
