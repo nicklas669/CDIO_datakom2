@@ -14,7 +14,7 @@ import java.util.Map;
 
 public class Main {
 	static Socket clientSocket;
-	static PrintWriter outToScale;
+	static DataOutputStream outToScale;
 	static BufferedReader inFromScale;
 	static Map<Integer, String> items = new HashMap<Integer, String>();
 	static String response = "";
@@ -47,9 +47,15 @@ public class Main {
 		//		System.out.println(inFromServer.readLine());
 		//		outToServer.writeBytes("S\r\n"); // Virker på vægt
 		
-		while (inFromScale.ready()) System.out.println(inFromScale.readLine());
-		outToScale.println("ST");
 		System.out.println(inFromScale.readLine());
+		System.out.println(inFromScale.readLine());
+		outToScale.writeBytes("S\r\n");
+		System.out.println(inFromScale.readLine());
+		inFromScale.readLine();
+		writeRM20ToScale(4, "Operatoer nr?", "", "");
+		readRM20FromScale();
+		
+		
 		// TODO: VALIDATION AF OPERATOR ID
 		// 3. BED OM OPERATØR ID
 //		if (operator == 0) {
@@ -184,63 +190,65 @@ public class Main {
 //	}
 //
 //
-//	/**
-//	 * Reads from scale until RM20 response is received.
-//	 * @throws IOException
-//	 */
-//	private static String readRM20FromScale() throws IOException {
-//		while (!RM20_status) {
-//			response = inFromScale.readLine();
-//			if (response.startsWith("RM20 B")) {
-//				System.out.println("Command executed, user input follows.");
-//				RM20_status = true;
-//			}
-//			else if (response.startsWith("RM20 I")) {
-//				System.out.println("Command understood but not executable at the moment.");
-//				break;
-//			}
-//			else if (response.startsWith("RM20 L")) {
-//				System.out.println("Command understood but parameter wrong.");
-//				break;
-//			}
-//		}
-//
-//		while (RM20_status) {
-//			response = inFromScale.readLine();
-//			if (response.startsWith("RM20 A")) {
-//				response = response.split(" ")[2];
-//				// Validate here if response is an integer?
-//				System.out.println("Svar fra operatør: "+response);
-//				RM20_status = false;
-//				return response;
-//			}
-//			else if (response.startsWith("RM20 C")) {
-//				System.out.println("RM20 afbrudt på vægt.");
-//				RM20_status = false;
-//			}
-//		}
-//		return "RM20 afbrudt på vægt.";
-//	}
-//
-//
-//
-//	/**
-//	 * Sends an RM20 command to the scale.
-//	 * @param type - 4 = integer, 8 = alphanum
-//	 * @param text1 - The string to be displayed on the scale (max. 24 chars).
-//	 * @param text2 - text2 Text/value to be displayed as default, and to be overwritten by user input.
-//	 * @param text3 - Unit (max. 7 characters).
-//	 */
-//	private static void writeRM20ToScale(int type, String text1, String text2,
-//			String text3) {
-//		try {
-//			System.out.println("Sender RM20 omkring \""+text1+"\"");
-//			outToScale.writeBytes("RM20 "+type+" \""+text1+"\" \""+text2+"\" \""+text3+"\"\r\n");
-//		} catch (IOException e) {
-//			e.printStackTrace();
-//		}
-//	}
-//
+	/**
+	 * Reads from scale until RM20 response is received.
+	 * @throws IOException
+	 */
+	private static String readRM20FromScale() throws IOException {
+		while (!RM20_status) {
+			response = inFromScale.readLine();
+			inFromScale.readLine();
+			if (response.startsWith("RM20 B")) {
+				System.out.println("Command executed, user input follows.");
+				RM20_status = true;
+			}
+			else if (response.startsWith("RM20 I")) {
+				System.out.println("Command understood but not executable at the moment.");
+				break;
+			}
+			else if (response.startsWith("RM20 L")) {
+				System.out.println("Command understood but parameter wrong.");
+				break;
+			}
+		}
+
+		while (RM20_status) {
+			response = inFromScale.readLine();
+			inFromScale.readLine();
+			if (response.startsWith("RM20 A")) {
+				response = response.split(" ")[2];
+				// Validate here if response is an integer?
+				System.out.println("Svar fra operatør: "+response);
+				RM20_status = false;
+				return response;
+			}
+			else if (response.startsWith("RM20 C")) {
+				System.out.println("RM20 afbrudt på vægt.");
+				RM20_status = false;
+			}
+		}
+		return "RM20 afbrudt på vægt.";
+	}
+
+
+
+	/**
+	 * Sends an RM20 command to the scale.
+	 * @param type - 4 = integer, 8 = alphanum
+	 * @param text1 - The string to be displayed on the scale (max. 24 chars).
+	 * @param text2 - text2 Text/value to be displayed as default, and to be overwritten by user input.
+	 * @param text3 - Unit (max. 7 characters).
+	 */
+	private static void writeRM20ToScale(int type, String text1, String text2,
+			String text3) {
+		try {
+			System.out.println("Sender RM20 omkring \""+text1+"\"");
+			outToScale.writeBytes("RM20 "+type+" \""+text1+"\" \""+text2+"\" \""+text3+"\"\r\n");
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+
 //	/**
 //	 * Opens socket to specified IP and port and sets up Input- and OutputStream.
 //	 * @param ip
@@ -250,7 +258,8 @@ public class Main {
 	private static boolean openConnection(String ip, int port) {
 		try {
 			clientSocket = new Socket(ip, port);
-			outToScale = new PrintWriter(clientSocket.getOutputStream(), true);
+//			outToScale = new PrintWriter(clientSocket.getOutputStream(), true);
+			outToScale = new DataOutputStream(clientSocket.getOutputStream());
 //			outToScale = new DataOutputStream(clientSocket.getOutputStream());
 			inFromScale = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
 			return true;
