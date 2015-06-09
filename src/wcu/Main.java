@@ -49,9 +49,12 @@ public class Main {
 		
 		System.out.println(inFromScale.readLine());
 		System.out.println(inFromScale.readLine());
+
 		outToScale.writeBytes("S\r\n");
 		System.out.println(inFromScale.readLine());
 		inFromScale.readLine();
+		outToScale.writeBytes("P111 \"Opseatning\"");
+		System.out.println(inFromScale.readLine());
 		writeRM20ToScale(4, "Operatoer nr?", "", "");
 		readRM20FromScale();
 		
