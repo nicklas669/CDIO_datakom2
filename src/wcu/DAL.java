@@ -1,3 +1,4 @@
+package wcu;
 import java.sql.*;
 
 public class DAL {
