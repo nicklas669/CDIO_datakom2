@@ -18,6 +18,7 @@ public class MainASE {
 	public static void main(String[] args) {
 		DAL datalayer = new DAL();
 		boolean bError = true;
+		String opr_name = "";
 		// Først skal operatøren logge ind
 
 		try {
@@ -45,14 +46,32 @@ public class MainASE {
 
 
 
+			while (true) {
 
-			do {
-				//Først findes gyldigt operatør nummer
-				writeRM20ToScale(4, "Operator ID?", "", "");
-				response = readRM20FromScale();
-				System.out.println(response);
-				response = datalayer.getOprNameFromID(response);
-			} while ("ID findes ikke!".equals(response));
+				do {
+					//Først findes gyldigt operatør nummer
+					writeRM20ToScale(4, "Operator ID?", "", "");
+					response = readRM20FromScale();
+					System.out.println(response);
+					opr_name = datalayer.getOprNameFromID(response);
+				} while ("ID findes ikke!".equals(response));
+				
+				loop1:
+				while(true) {
+					
+					writeRM20ToScale(4, opr_name + "?(Y/N)", "", "");
+					response = readRM20FromScale(); 
+					if(response.equals("Y")) {
+						break;
+					} else if( response.equals("N")) {
+						continue;
+					} else {
+						System.out.println(response);
+						break loop1;
+					}
+				}
+				break;
+			}
 
 			System.out.println(response);
 
