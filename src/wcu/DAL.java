@@ -50,17 +50,27 @@ public class DAL {
 				System.out.print(" Navn: " + navn);
 				System.out.print(" CPR: " + cpr);
 				System.out.println(" Password: " + password);
+				System.out.println(" ??: " + rs1.getString(6));
+				
 
 			}
 			ResultSet rs2 = stmt.executeQuery(sql2);
-			System.out.println();
-			System.out.println("Ravvare:");
+//			System.out.println();
+//			System.out.println("Ravvare:");
 			
-			while(rs2.next()) {
-				System.out.print("ID: " + rs2.getString(1) + " ");
-				System.out.print("Navn: " + rs2.getString(2) + " ");
-				System.out.println("Leverandør: " + rs2.getString(3));
-			}
+//			while(rs2.next()) {
+//				System.out.print("ID: " + rs2.getString(1) + " ");
+//				System.out.print("Navn: " + rs2.getString(2) + " ");
+//				System.out.println("Leverandør: " + rs2.getString(3));
+//			}
+			
+			
+			
+			DatabaseMetaData md = conn.getMetaData();
+		    ResultSet rs = md.getTables(null, null, "%", null);
+		    while (rs.next()) {
+		      System.out.println(rs.getString(3));
+		    }
 			
 			//Swag
 			
