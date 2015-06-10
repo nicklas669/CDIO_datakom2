@@ -61,7 +61,7 @@ public class DAL {
 				System.out.println("Leverandør: " + rs2.getString(3));
 			}
 			
-			
+			//Swag
 			
 			
 
