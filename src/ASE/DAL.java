@@ -107,8 +107,3 @@ public class DAL {
 	}
 }
 
-class noOprID extends Exception {
-	public noOprID(String message) {
-		super(message);
-	}
-}
