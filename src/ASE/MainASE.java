@@ -20,6 +20,7 @@ public class MainASE {
 		String opr_name = "";
 		String recept_navn;
 		String produktbatch_id;
+		String tarabeholder_vaegt;
 		// Først skal operatøren logge ind
 
 		try {
@@ -57,7 +58,7 @@ public class MainASE {
 				// Prompt for om navnet er korrekt på vægt
 				loop1: while (true) {
 
-					writeRM20ToScale(4, opr_name + "?(Y/N)", "", "");
+					writeRM20ToScale(8, opr_name + "?(Y/N)", "", "");
 					response = readRM20FromScale().toUpperCase();
 					if (response.equals("Y")) {
 						// Hvis respons er Y breakes ud af while loopet
@@ -98,16 +99,46 @@ public class MainASE {
 			// Operatøren kontrollerer at vægten er ubelastet og trykker ’ok’
 
 			do {
-				writeRM20ToScale(4, "Vægt ubelastet?(OK)", "", "");
+				writeRM20ToScale(8, "Vægt ubelastet?(OK)", "", "");
 				response = readRM20FromScale().toUpperCase();
 			} while (!"OK".equals(response));
 
-//			8: Systemet sætter produktbatch nummerets status til ”Under produktion”.
+			// 8: Systemet sætter produktbatch nummerets status til ”Under produktion”.
 			datalayer.setProduktBatchStatus(Integer.valueOf(produktbatch_id), 1);
 			outToServer.writeBytes("P111 \"Produktbatch er nu Under Produktion\"" + '\n');
 			inputServer.readLine();
 			inputServer.readLine();
+
+			// 9: Vægten tareres
+			outToServer.writeBytes("T" + '\n');
+			inputServer.readLine();
+			inputServer.readLine();
+
+			// DER ER ET PROBLEM HER, HVOR MAN IKKE KAN SIMULERE AT DER PLACERES EN BEHOLDER
+			// (MAN KAN IKKE SKRIVE "B 2.12" FORDI DER SKAL SVARES PÅ RM20).....
+			// LØSNING??
+
+			// 10: Vægten beder om første tara beholder. 11: Operatør placerer første tarabeholder og trykker ’ok’.
+			do {
+				writeRM20ToScale(8, "Sæt beholder på (OK)", "", "");
+				response = readRM20FromScale().toUpperCase();
+			} while (!"OK".equals(response));
+
+			// 12: Vægten af tarabeholder registreres
+			outToServer.writeBytes("S" + '\n');
+			tarabeholder_vaegt = inputServer.readLine();
+			inputServer.readLine();
 			
+			System.out.println(tarabeholder_vaegt);
+			
+			// 13: Vægten tareres.
+			outToServer.writeBytes("T" + '\n');
+			inputServer.readLine();
+			inputServer.readLine();
+			
+			// 14: Vægten beder om raavarebatch nummer på første råvare.
+			
+
 			System.out.println("Goodbye");
 
 			clientSocket.close();
