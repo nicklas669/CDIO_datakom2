@@ -116,6 +116,23 @@ public class DAL {
 		}
 	}
 	
+	public String getRaavarebatch(int id){
+		try {
+//			String sql = "SELECT recept_navn FROM grp16.recept WHERE recept_id = (SELECT recept_id FROM grp16.produktbatch WHERE pb_id = " + id + ");";
+			String sql = "SELECT raavare_id FROM raavarebatch WHERE rb_id = "+id;
+			stmt = conn.createStatement();
+			ResultSet rs = stmt.executeQuery(sql);
+			
+			if (rs.next()) {
+				return rs.getString("raavare_id");
+			} else {
+				return "ID findes ikke!";
+			}
+		} catch(SQLException e) {
+			return "SQL Fejl";
+		}
+	}
+	
 	
 	public String getOprNameFromID(String id) {
 		try {

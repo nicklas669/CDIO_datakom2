@@ -21,6 +21,8 @@ public class MainASE {
 		String recept_navn;
 		String produktbatch_id;
 		String tarabeholder_vaegt;
+		String raavare_navn;
+		String raavarebatch_id;
 		// Først skal operatøren logge ind
 
 		try {
@@ -137,6 +139,17 @@ public class MainASE {
 			inputServer.readLine();
 			
 			// 14: Vægten beder om raavarebatch nummer på første råvare.
+			
+			// VI SKAL HAVE NOGET LOOP HER DER KØRER FOR HVER RÅVARE DER INDGÅR I DEN SPECIFIKKE RECEPT DER BESTEMMES AF PRODUKTBATCH...
+			raavare_navn = "Vand"; // Skal hentes fra database for hver råvare i recept
+			
+			do {
+				writeRM20ToScale(4, "RB ID for "+raavare_navn, "", "");
+				response = readRM20FromScale();
+				raavarebatch_id = datalayer.getRaavarebatch(Integer.valueOf(response));
+			} while ("ID findes ikke!".equals(recept_navn) || "SQL Fejl".equals(recept_navn));
+			
+			// 15: Operatøren afvejer op til den ønskede mængde og trykker ’ok’
 			
 
 			System.out.println("Goodbye");
