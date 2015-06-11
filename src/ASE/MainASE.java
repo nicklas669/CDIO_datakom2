@@ -18,6 +18,7 @@ public class MainASE {
 		DAL datalayer = new DAL();
 
 		String opr_name = "";
+		String recept_navn;
 		// Først skal operatøren logge ind
 
 		try {
@@ -43,8 +44,7 @@ public class MainASE {
 
 			boolean loopOne = false;
 			while (true) {
-				
-				
+
 				// Prompt for gyldigt operatør nummer på vægt
 				System.out.println("Going in response is:" + response);
 				do {
@@ -53,9 +53,8 @@ public class MainASE {
 					opr_name = datalayer.getOprNameFromID(response);
 				} while ("ID findes ikke!".equals(response));
 
-				//Prompt for om navnet er korrekt på vægt
-				loop1:
-				while (true) {
+				// Prompt for om navnet er korrekt på vægt
+				loop1: while (true) {
 
 					writeRM20ToScale(4, opr_name + "?(Y/N)", "", "");
 					response = readRM20FromScale();
@@ -74,14 +73,31 @@ public class MainASE {
 						continue;
 					}
 				}
-				if(loopOne) {
+				if (loopOne) {
 					break;
 				}
 			}
 
 			System.out.println(opr_name + " is locked in as the using operator");
+
+			// Operatør rved vægt spørges om hvilken produktbatch han skal lave
+
 			
-			//Operatør rved vægt spørges om hvilken produktbatch han skal lave
+			// Prompt for gyldigt produktions
+			
+			writeRM20ToScale(4, "Produktbatch nummer?", "", "");
+			response = readRM20FromScale();
+			recept_navn = datalayer.getReceptNavnFromPBID(response);
+			do {
+				writeRM20ToScale(4, "Ugyldigt, prøv igen", "", "");
+				response = readRM20FromScale();
+				recept_navn = datalayer.getReceptNavnFromPBID(response);
+				
+			} while ("ID findes ikke!".equals(recept_navn));
+			
+			
+			System.out.println("Got: " + recept_navn);
+			
 
 			System.out.println("Goodbye");
 
