@@ -51,13 +51,13 @@ public class MainASE {
 					writeRM20ToScale(4, "Operator ID?", "", "");
 					response = readRM20FromScale();
 					opr_name = datalayer.getOprNameFromID(response);
-				} while ("ID findes ikke!".equals(response));
+				} while ("ID findes ikke!".equals(opr_name) || "SQL fejl".equals(opr_name));
 
 				// Prompt for om navnet er korrekt på vægt
 				loop1: while (true) {
 
 					writeRM20ToScale(4, opr_name + "?(Y/N)", "", "");
-					response = readRM20FromScale();
+					response = readRM20FromScale().toUpperCase();
 					if (response.equals("Y")) {
 						// Hvis respons er Y breakes ud af while loopet
 						loopOne = true;
@@ -82,22 +82,23 @@ public class MainASE {
 
 			// Operatør rved vægt spørges om hvilken produktbatch han skal lave
 
-			
-			// Prompt for gyldigt produktions
-			
-			writeRM20ToScale(4, "Produktbatch nummer?", "", "");
-			response = readRM20FromScale();
-			recept_navn = datalayer.getReceptNavnFromPBID(response);
+
+			// Prompt for gyldigt produktbatch
+
 			do {
-				writeRM20ToScale(4, "Ugyldigt, prøv igen", "", "");
+				writeRM20ToScale(4, "Produktbatch nummer?", "", "");
 				response = readRM20FromScale();
 				recept_navn = datalayer.getReceptNavnFromPBID(response);
-				
-			} while ("ID findes ikke!".equals(recept_navn));
-			
-			
+			} while ("ID findes ikke!".equals(recept_navn) || "SQL Fejl".equals(recept_navn));
+
 			System.out.println("Got: " + recept_navn);
-			
+
+			// Operatøren kontrollerer at vægten er ubelastet og trykker ’ok’
+
+			do {
+				writeRM20ToScale(4, "Vægt ubelastet?(OK)", "", "");
+				response = readRM20FromScale().toUpperCase();
+			} while (!"OK".equals(response));
 
 			System.out.println("Goodbye");
 
@@ -148,7 +149,7 @@ public class MainASE {
 				RM20_status = true;
 			} else if (response.startsWith("RM20 I")) {
 				System.out
-						.println("Command understood but not executable at the moment.");
+				.println("Command understood but not executable at the moment.");
 				break;
 			} else if (response.startsWith("RM20 L")) {
 				System.out.println("Command understood but parameter wrong.");
