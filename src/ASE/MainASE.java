@@ -19,6 +19,7 @@ public class MainASE {
 
 		String opr_name = "";
 		String recept_navn;
+		String produktbatch_id;
 		// Først skal operatøren logge ind
 
 		try {
@@ -86,8 +87,9 @@ public class MainASE {
 			// Prompt for gyldigt produktbatch
 
 			do {
-				writeRM20ToScale(4, "Produktbatch nummer?", "", "");
+				writeRM20ToScale(4, "Produktbatch ID?", "", "");
 				response = readRM20FromScale();
+				produktbatch_id = response;
 				recept_navn = datalayer.getReceptNavnFromPBID(response);
 			} while ("ID findes ikke!".equals(recept_navn) || "SQL Fejl".equals(recept_navn));
 
@@ -100,6 +102,10 @@ public class MainASE {
 				response = readRM20FromScale().toUpperCase();
 			} while (!"OK".equals(response));
 
+//			8: Systemet sætter produktbatch nummerets status til ”Under produktion”.
+			datalayer.setProduktBatchStatus(Integer.valueOf(produktbatch_id), 1);
+			
+			
 			System.out.println("Goodbye");
 
 			clientSocket.close();

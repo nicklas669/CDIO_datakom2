@@ -88,6 +88,18 @@ public class DAL {
 
 	}
 	
+	public String setProduktBatchStatus(int pb_id, int status){
+		try {
+//			String sql = "SELECT recept_navn FROM grp16.recept WHERE recept_id = (SELECT recept_id FROM grp16.produktbatch WHERE pb_id = " + id + ");";
+			String sql = "UPDATE produktbatch SET status = "+status+" WHERE pb_id = "+pb_id;
+			stmt = conn.createStatement();
+			int result = stmt.executeUpdate(sql);
+			return "Success";
+		} catch(SQLException e) {
+			return "SQL Fejl";
+		}
+	}
+	
 	public String getReceptNavnFromPBID(String id){
 		try {
 			String sql = "SELECT recept_navn FROM grp16.recept WHERE recept_id = (SELECT recept_id FROM grp16.produktbatch WHERE pb_id = " + id + ");";
