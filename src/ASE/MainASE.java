@@ -104,7 +104,9 @@ public class MainASE {
 
 //			8: Systemet sætter produktbatch nummerets status til ”Under produktion”.
 			datalayer.setProduktBatchStatus(Integer.valueOf(produktbatch_id), 1);
-			
+			outToServer.writeBytes("P111 \"Produktbatch er nu Under Produktion\"" + '\n');
+			inputServer.readLine();
+			inputServer.readLine();
 			
 			System.out.println("Goodbye");
 
