@@ -17,14 +17,16 @@ public class MainASE {
 	static BufferedReader inputServer;
 	static DataOutputStream outToServer;
 
+	static boolean realScale = false;
+
 	public static void main(String[] args) {
 		DAL dal = new DAL();
 
-		String opr_name = "";
+		String opr_id, opr_name = "";
 		String recept_navn, recept_id;
 		String produktbatch_id;
 		String tarabeholder_vaegt, afvejet_vaegt;
-		String raavare_navn, raavarebatch_id, raavare_amount;
+		String raavare_navn, raavare_amount, raavare_tolerance, raavarebatch_id;
 		ArrayList<ReceptKomponentDTO> receptkomponenter = new ArrayList<ReceptKomponentDTO>();
 
 		// Først skal operatøren logge ind
@@ -34,31 +36,33 @@ public class MainASE {
 			String response;
 
 			Socket clientSocket = new Socket("localhost", 8000);
+			if (realScale) clientSocket = new Socket("169.254.2.3", 8000);
 
 			outToServer = new DataOutputStream(clientSocket.getOutputStream());
 			inputServer = new BufferedReader(new InputStreamReader(
 					clientSocket.getInputStream()));
 
-			// Første to linjer spises
+			// Første to linjer spises - skal dette også gøres på rigtige vægt?
 			response = inputServer.readLine();
 			System.out.println(response);
 			response = inputServer.readLine();
 			System.out.println(response);
 
 			// Slå fra på rigtig vægt
-			outToServer.writeBytes("P111 \"Blank\"" + '\n');
-			inputServer.readLine();
-			inputServer.readLine();
-
+			if (!realScale) {
+				outToServer.writeBytes("P111 \"Blank\"" + '\n');
+				inputServer.readLine();
+				inputServer.readLine();
+			}
+			
 			boolean loopOne = false;
 			while (true) {
 
 				// Prompt for gyldigt operatør nummer på vægt
-				System.out.println("Going in response is:" + response);
 				do {
 					writeRM20ToScale(4, "Operator ID?", "", "");
-					response = readRM20FromScale();
-					opr_name = dal.getOprNameFromID(response);
+					opr_id = readRM20FromScale();
+					opr_name = dal.getOprNameFromID(opr_id);
 				} while ("ID findes ikke!".equals(opr_name) || "SQL fejl".equals(opr_name));
 
 				// Prompt for om navnet er korrekt på vægt
@@ -96,56 +100,17 @@ public class MainASE {
 				writeRM20ToScale(4, "Produktbatch ID?", "", "");
 				response = readRM20FromScale();
 				produktbatch_id = response;
-				recept_id = dal.getReceptIDFromPBID(response);
-				recept_navn = dal.getReceptNavnFromPBID(response);
+				recept_id = dal.getReceptIDFromPBID(produktbatch_id);
+				recept_navn = dal.getReceptNavnFromPBID(produktbatch_id);
 			} while ("ID findes ikke!".equals(recept_navn) || "SQL Fejl".equals(recept_navn));
 
-			System.out.println("Got: " + recept_navn);
-
+			System.out.println(produktbatch_id);
+			System.out.println(recept_id);
+			System.out.println(recept_navn);
 
 			// 6: Vægten svarer tilbage med navn på recept der skal produceres (eks: saltvand med citron)
 			outToServer.writeBytes("P111 \""+recept_navn+"\"" + '\n');
 			inputServer.readLine();
-			inputServer.readLine();
-
-			// 7: Operatøren kontrollerer at vægten er ubelastet og trykker ’ok’
-
-			do {
-				writeRM20ToScale(8, "Vægt ubelastet?(OK)", "OK", "");
-				response = readRM20FromScale().toUpperCase();
-			} while (!"OK".equals(response));
-
-			// 8: Systemet sætter produktbatch nummerets status til ”Under produktion”.
-			dal.setProduktBatchStatus(Integer.valueOf(produktbatch_id), 1);
-			outToServer.writeBytes("P111 \"Produktbatch er nu Under Produktion\"" + '\n');
-			inputServer.readLine();
-			inputServer.readLine();
-
-			// 9: Vægten tareres
-			outToServer.writeBytes("T" + '\n');
-			inputServer.readLine();
-			inputServer.readLine();
-
-			// DER ER ET PROBLEM HER, HVOR MAN IKKE KAN SIMULERE AT DER PLACERES EN BEHOLDER
-			// (MAN KAN IKKE SKRIVE "B 2.12" FORDI DER SKAL SVARES PÅ RM20).....
-			// LØSNING?? Vi kan lave B-kommandoen tilgængelig eksternt 	i vægt simulatoren
-
-			// 10: Vægten beder om første tara beholder. 11: Operatør placerer første tarabeholder og trykker ’ok’.
-			do {
-				writeRM20ToScale(8, "Sæt beholder på (OK)", "OK", "");
-				response = readRM20FromScale().toUpperCase();
-			} while (!"OK".equals(response));
-
-			// 12: Vægten af tarabeholder registreres
-			outToServer.writeBytes("S" + '\n');
-			tarabeholder_vaegt = inputServer.readLine();
-			inputServer.readLine();
-
-			System.out.println("Beholder vægt: "+tarabeholder_vaegt);
-
-			// 13: Vægten tareres.
-			outToServer.writeBytes("T" + '\n');
-			System.out.println(inputServer.readLine());
 			inputServer.readLine();
 
 			// 16: Pkt. 7 – 15 gentages indtil alle råvarer er afvejet.
@@ -153,31 +118,80 @@ public class MainASE {
 			receptkomponenter = dal.getRaavarerInRecept(Integer.valueOf(recept_id));
 
 			for (ReceptKomponentDTO rk : receptkomponenter) {
+				// 7: Operatøren kontrollerer at vægten er ubelastet og trykker ’ok’
+
+				do {
+					writeRM20ToScale(8, "Vægt ubelastet?(OK)", "OK", "");
+					response = readRM20FromScale().toUpperCase();
+				} while (!"OK".equals(response));
+
+				// 8: Systemet sætter produktbatch nummerets status til ”Under produktion”.
+				dal.setProduktBatchStatus(Integer.valueOf(produktbatch_id), 1);
+				outToServer.writeBytes("P111 \"Produktbatch er nu Under Produktion\"" + '\n');
+				inputServer.readLine();
+				inputServer.readLine();
+
+				// 9: Vægten tareres
+				outToServer.writeBytes("T" + '\n');
+				System.out.println(inputServer.readLine());
+				inputServer.readLine();
+
+				// DER ER ET PROBLEM HER, HVOR MAN IKKE KAN SIMULERE AT DER PLACERES EN BEHOLDER
+				// (MAN KAN IKKE SKRIVE "B 2.12" FORDI DER SKAL SVARES PÅ RM20).....
+				// LØSNING?? Vi kan lave B-kommandoen tilgængelig eksternt 	i vægt simulatoren
+
+				// 10: Vægten beder om første tara beholder. 11: Operatør placerer første tarabeholder og trykker ’ok’.
+				do {
+					writeRM20ToScale(8, "Sæt beholder på (OK)", "OK", "");
+					response = readRM20FromScale().toUpperCase();
+				} while (!"OK".equals(response));
+
+				// 12: Vægten af tarabeholder registreres
+				outToServer.writeBytes("S" + '\n');
+				tarabeholder_vaegt = inputServer.readLine().split(" ")[7].replaceAll(",", ".");
+				inputServer.readLine();
+
+				System.out.println("Beholder vægt: "+tarabeholder_vaegt);
+
+				// 13: Vægten tareres.
+				outToServer.writeBytes("T" + '\n');
+				System.out.println(inputServer.readLine());
+				inputServer.readLine();
+
 				raavare_navn = dal.getRaavareNameFromID(rk.getRvrId());
-				
+
 				// 14: Vægten beder om raavarebatch nummer på første råvare.
 				do {
 					writeRM20ToScale(4, "RB ID for "+raavare_navn, "", "");
 					response = readRM20FromScale();
-					raavarebatch_id = dal.getRaavarebatch(Integer.valueOf(response));
-				} while ("ID findes ikke!".equals(recept_navn) || "SQL Fejl".equals(recept_navn));
+					raavarebatch_id = dal.getRaavarebatch(Integer.valueOf(response), rk.getRvrId());
+				} while ("ID findes ikke!".equals(raavarebatch_id) || "SQL Fejl".equals(raavarebatch_id));
 
 				// 15: Operatøren afvejer op til den ønskede mængde og trykker ’ok’
 				raavare_amount = String.valueOf(rk.getNomNetto());
+				raavare_tolerance = String.valueOf(rk.getTolerance());
 				do {
 					writeRM20ToScale(8, "Afvej "+raavare_amount+" kg", "OK", "");
 					response = readRM20FromScale();
 					outToServer.writeBytes("S" + '\n');
-					afvejet_vaegt = inputServer.readLine();
+					afvejet_vaegt = inputServer.readLine().split(" ")[7].replaceAll(",", ".");
 					inputServer.readLine();
 					System.out.println("Afvejet: "+afvejet_vaegt);
-				} while (!"OK".equals(response));
-				
-				
-				// 17: Systemet sætter produktbatch nummerets status til ”Afsluttet”.
+				} while (!"OK".equals(response) || 
+						!(Double.valueOf(afvejet_vaegt) <= Double.valueOf(raavare_amount)+Double.valueOf(raavare_tolerance)) ||
+						!(Double.valueOf(afvejet_vaegt) >= Double.valueOf(raavare_amount)-Double.valueOf(raavare_tolerance)));
 
-				// 18: Det kan herefter genoptages af en ny operatør.
+				dal.insertProduktBatchKomp(Integer.valueOf(produktbatch_id), Integer.valueOf(raavarebatch_id), 
+						Double.valueOf(tarabeholder_vaegt), Double.valueOf(afvejet_vaegt), Integer.valueOf(opr_id));
 			}
+
+			// 17: Systemet sætter produktbatch nummerets status til ”Afsluttet”.
+			dal.setProduktBatchStatus(Integer.valueOf(produktbatch_id), 2);
+			outToServer.writeBytes("P111 \"Produktbatch er nu Afsluttet\"" + '\n');
+			inputServer.readLine();
+			inputServer.readLine();
+
+			// 18: Det kan herefter genoptages af en ny operatør.
 			System.out.println("Goodbye");
 
 			clientSocket.close();
