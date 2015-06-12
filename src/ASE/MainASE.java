@@ -3,6 +3,7 @@ package ASE;
 import java.io.*;
 import java.net.*;
 import java.sql.SQLException;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -16,7 +17,7 @@ public class MainASE {
 
 	static BufferedReader inputServer;
 	static DataOutputStream outToServer;
-
+	
 	static boolean realScale = false;
 
 	public static void main(String[] args) {
@@ -137,6 +138,10 @@ public class MainASE {
 				// LØSNING?? Vi kan lave B-kommandoen tilgængelig eksternt 	i vægt simulatoren
 
 				// 10: Vægten beder om første tara beholder. 11: Operatør placerer første tarabeholder og trykker ’ok’.
+				outToServer.writeBytes("B 0.125" + '\n');
+				System.out.println(inputServer.readLine());
+				inputServer.readLine();
+				
 				do {
 					writeRM20ToScale(8, "Sæt beholder på (OK)", "OK", "");
 					response = readRM20FromScale().toUpperCase();
@@ -166,6 +171,12 @@ public class MainASE {
 				// 15: Operatøren afvejer op til den ønskede mængde og trykker ’ok’
 				raavare_amount = String.valueOf(rk.getNomNetto());
 				raavare_tolerance = String.valueOf(rk.getTolerance());
+				
+				// Simulér masse placeret på vægt
+				outToServer.writeBytes("B "+rk.getNomNetto() + '\n');
+				System.out.println(inputServer.readLine());
+				inputServer.readLine();
+				
 				do {
 					writeRM20ToScale(8, "Afvej "+raavare_amount+" kg", "OK", "");
 					response = readRM20FromScale();
@@ -176,9 +187,9 @@ public class MainASE {
 				} while (!"OK".equals(response) || 
 						!(Double.valueOf(afvejet_vaegt) <= Double.valueOf(raavare_amount)+Double.valueOf(raavare_tolerance)) ||
 						!(Double.valueOf(afvejet_vaegt) >= Double.valueOf(raavare_amount)-Double.valueOf(raavare_tolerance)));
-
+				
 				dal.insertProduktBatchKomp(Integer.valueOf(produktbatch_id), Integer.valueOf(raavarebatch_id), 
-						Double.valueOf(tarabeholder_vaegt), Double.valueOf(afvejet_vaegt), Integer.valueOf(opr_id));
+						Double.valueOf(tarabeholder_vaegt.replaceAll(",", ".")), Double.valueOf(afvejet_vaegt.replaceAll(",", ".")), Integer.valueOf(opr_id));
 			}
 
 			// 17: Systemet sætter produktbatch nummerets status til ”Afsluttet”.

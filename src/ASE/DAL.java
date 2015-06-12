@@ -1,6 +1,7 @@
 package ASE;
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.Locale;
 
 public class DAL {
 
@@ -88,15 +89,14 @@ public class DAL {
 
 	}
 
-	public String insertProduktBatchKomp(int pb_id, int rb_id, double tara, double netto, int opr_id){
+	public void insertProduktBatchKomp(int pb_id, int rb_id, double tara, double netto, int opr_id){
 		try {
-			String sql = String.format("INSERT INTO produktbatchkomponent VALUES (%d, %d, %f, %f, %d)", pb_id, rb_id, tara, netto, opr_id);
+			String sql = String.format(Locale.US, "INSERT INTO produktbatchkomponent VALUES (%d, %d, %f, %f, %d)", pb_id, rb_id, tara, netto, opr_id);
 			System.out.println(sql);
 			stmt = conn.createStatement();
 			int result = stmt.executeUpdate(sql);
-			return "Success";
 		} catch(SQLException e) {
-			return "SQL Fejl";
+			System.out.println(e.getMessage());
 		}
 	}
 
@@ -136,7 +136,7 @@ public class DAL {
 
 			if (rs.next()) {
 				if (raav_id == rs.getInt("raavare_id")) {
-					return "Success";
+					return String.valueOf(id);
 				} 
 			}
 			return "ID findes ikke!";
