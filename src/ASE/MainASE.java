@@ -3,8 +3,11 @@ package ASE;
 import java.io.*;
 import java.net.*;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
+
+import com.sun.xml.internal.bind.v2.schemagen.xmlschema.List;
 
 public class MainASE {
 
@@ -15,14 +18,15 @@ public class MainASE {
 	static DataOutputStream outToServer;
 
 	public static void main(String[] args) {
-		DAL datalayer = new DAL();
+		DAL dal = new DAL();
 
 		String opr_name = "";
-		String recept_navn;
+		String recept_navn, recept_id;
 		String produktbatch_id;
-		String tarabeholder_vaegt;
-		String raavare_navn;
-		String raavarebatch_id;
+		String tarabeholder_vaegt, afvejet_vaegt;
+		String raavare_navn, raavarebatch_id, raavare_amount;
+		ArrayList<ReceptKomponentDTO> receptkomponenter = new ArrayList<ReceptKomponentDTO>();
+
 		// Først skal operatøren logge ind
 
 		try {
@@ -54,13 +58,13 @@ public class MainASE {
 				do {
 					writeRM20ToScale(4, "Operator ID?", "", "");
 					response = readRM20FromScale();
-					opr_name = datalayer.getOprNameFromID(response);
+					opr_name = dal.getOprNameFromID(response);
 				} while ("ID findes ikke!".equals(opr_name) || "SQL fejl".equals(opr_name));
 
 				// Prompt for om navnet er korrekt på vægt
 				loop1: while (true) {
 
-					writeRM20ToScale(8, opr_name + "?(Y/N)", "", "");
+					writeRM20ToScale(8, opr_name + "?(Y/N)", "Y", "");
 					response = readRM20FromScale().toUpperCase();
 					if (response.equals("Y")) {
 						// Hvis respons er Y breakes ud af while loopet
@@ -84,8 +88,7 @@ public class MainASE {
 
 			System.out.println(opr_name + " is locked in as the using operator");
 
-			// Operatør rved vægt spørges om hvilken produktbatch han skal lave
-
+			// 5: Operatøren indtaster produktbatch nummer.
 
 			// Prompt for gyldigt produktbatch
 
@@ -93,20 +96,27 @@ public class MainASE {
 				writeRM20ToScale(4, "Produktbatch ID?", "", "");
 				response = readRM20FromScale();
 				produktbatch_id = response;
-				recept_navn = datalayer.getReceptNavnFromPBID(response);
+				recept_id = dal.getReceptIDFromPBID(response);
+				recept_navn = dal.getReceptNavnFromPBID(response);
 			} while ("ID findes ikke!".equals(recept_navn) || "SQL Fejl".equals(recept_navn));
 
 			System.out.println("Got: " + recept_navn);
 
-			// Operatøren kontrollerer at vægten er ubelastet og trykker ’ok’
+
+			// 6: Vægten svarer tilbage med navn på recept der skal produceres (eks: saltvand med citron)
+			outToServer.writeBytes("P111 \""+recept_navn+"\"" + '\n');
+			inputServer.readLine();
+			inputServer.readLine();
+
+			// 7: Operatøren kontrollerer at vægten er ubelastet og trykker ’ok’
 
 			do {
-				writeRM20ToScale(8, "Vægt ubelastet?(OK)", "", "");
+				writeRM20ToScale(8, "Vægt ubelastet?(OK)", "OK", "");
 				response = readRM20FromScale().toUpperCase();
 			} while (!"OK".equals(response));
 
 			// 8: Systemet sætter produktbatch nummerets status til ”Under produktion”.
-			datalayer.setProduktBatchStatus(Integer.valueOf(produktbatch_id), 1);
+			dal.setProduktBatchStatus(Integer.valueOf(produktbatch_id), 1);
 			outToServer.writeBytes("P111 \"Produktbatch er nu Under Produktion\"" + '\n');
 			inputServer.readLine();
 			inputServer.readLine();
@@ -118,11 +128,11 @@ public class MainASE {
 
 			// DER ER ET PROBLEM HER, HVOR MAN IKKE KAN SIMULERE AT DER PLACERES EN BEHOLDER
 			// (MAN KAN IKKE SKRIVE "B 2.12" FORDI DER SKAL SVARES PÅ RM20).....
-			// LØSNING??
+			// LØSNING?? Vi kan lave B-kommandoen tilgængelig eksternt 	i vægt simulatoren
 
 			// 10: Vægten beder om første tara beholder. 11: Operatør placerer første tarabeholder og trykker ’ok’.
 			do {
-				writeRM20ToScale(8, "Sæt beholder på (OK)", "", "");
+				writeRM20ToScale(8, "Sæt beholder på (OK)", "OK", "");
 				response = readRM20FromScale().toUpperCase();
 			} while (!"OK".equals(response));
 
@@ -130,28 +140,44 @@ public class MainASE {
 			outToServer.writeBytes("S" + '\n');
 			tarabeholder_vaegt = inputServer.readLine();
 			inputServer.readLine();
-			
-			System.out.println(tarabeholder_vaegt);
-			
+
+			System.out.println("Beholder vægt: "+tarabeholder_vaegt);
+
 			// 13: Vægten tareres.
 			outToServer.writeBytes("T" + '\n');
+			System.out.println(inputServer.readLine());
 			inputServer.readLine();
-			inputServer.readLine();
-			
-			// 14: Vægten beder om raavarebatch nummer på første råvare.
-			
-			// VI SKAL HAVE NOGET LOOP HER DER KØRER FOR HVER RÅVARE DER INDGÅR I DEN SPECIFIKKE RECEPT DER BESTEMMES AF PRODUKTBATCH...
-			raavare_navn = "Vand"; // Skal hentes fra database for hver råvare i recept
-			
-			do {
-				writeRM20ToScale(4, "RB ID for "+raavare_navn, "", "");
-				response = readRM20FromScale();
-				raavarebatch_id = datalayer.getRaavarebatch(Integer.valueOf(response));
-			} while ("ID findes ikke!".equals(recept_navn) || "SQL Fejl".equals(recept_navn));
-			
-			// 15: Operatøren afvejer op til den ønskede mængde og trykker ’ok’
-			
 
+			// 16: Pkt. 7 – 15 gentages indtil alle råvarer er afvejet.
+			// Hent alle råvarer i en recept
+			receptkomponenter = dal.getRaavarerInRecept(Integer.valueOf(recept_id));
+
+			for (ReceptKomponentDTO rk : receptkomponenter) {
+				raavare_navn = dal.getRaavareNameFromID(rk.getRvrId());
+				
+				// 14: Vægten beder om raavarebatch nummer på første råvare.
+				do {
+					writeRM20ToScale(4, "RB ID for "+raavare_navn, "", "");
+					response = readRM20FromScale();
+					raavarebatch_id = dal.getRaavarebatch(Integer.valueOf(response));
+				} while ("ID findes ikke!".equals(recept_navn) || "SQL Fejl".equals(recept_navn));
+
+				// 15: Operatøren afvejer op til den ønskede mængde og trykker ’ok’
+				raavare_amount = String.valueOf(rk.getNomNetto());
+				do {
+					writeRM20ToScale(8, "Afvej "+raavare_amount+" kg", "OK", "");
+					response = readRM20FromScale();
+					outToServer.writeBytes("S" + '\n');
+					afvejet_vaegt = inputServer.readLine();
+					inputServer.readLine();
+					System.out.println("Afvejet: "+afvejet_vaegt);
+				} while (!"OK".equals(response));
+				
+				
+				// 17: Systemet sætter produktbatch nummerets status til ”Afsluttet”.
+
+				// 18: Det kan herefter genoptages af en ny operatør.
+			}
 			System.out.println("Goodbye");
 
 			clientSocket.close();
