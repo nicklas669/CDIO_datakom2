@@ -34,7 +34,7 @@ public class MainASE {
 		try {
 			// Forbindelse til vægten oprettes
 			String response;
-
+			
 			Socket clientSocket = new Socket("localhost", 8000);
 			if (realScale) clientSocket = new Socket("169.254.2.3", 8000);
 
@@ -103,10 +103,6 @@ public class MainASE {
 				recept_id = dal.getReceptIDFromPBID(produktbatch_id);
 				recept_navn = dal.getReceptNavnFromPBID(produktbatch_id);
 			} while ("ID findes ikke!".equals(recept_navn) || "SQL Fejl".equals(recept_navn));
-
-			System.out.println(produktbatch_id);
-			System.out.println(recept_id);
-			System.out.println(recept_navn);
 
 			// 6: Vægten svarer tilbage med navn på recept der skal produceres (eks: saltvand med citron)
 			outToServer.writeBytes("P111 \""+recept_navn+"\"" + '\n');
