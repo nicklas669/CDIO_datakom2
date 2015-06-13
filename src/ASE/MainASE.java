@@ -17,8 +17,8 @@ public class MainASE {
 
 	static BufferedReader inputServer;
 	static DataOutputStream outToServer;
-	
-	static boolean realScale = false;
+
+	static boolean realScale = true;
 
 	public static void main(String[] args) {
 		DAL dal = new DAL();
@@ -35,19 +35,21 @@ public class MainASE {
 		try {
 			// Forbindelse til vægten oprettes
 			String response;
-			
-			Socket clientSocket = new Socket("localhost", 8000);
+			Socket clientSocket;
 			if (realScale) clientSocket = new Socket("169.254.2.3", 8000);
+			else clientSocket = new Socket("localhost", 8000);
 
 			outToServer = new DataOutputStream(clientSocket.getOutputStream());
 			inputServer = new BufferedReader(new InputStreamReader(
 					clientSocket.getInputStream()));
 
-			// Første to linjer spises - skal dette også gøres på rigtige vægt?
+			// Første to linjer spises
 			response = inputServer.readLine();
 			System.out.println(response);
-			response = inputServer.readLine();
-			System.out.println(response);
+			if (!realScale) { // Der læses kun én linje hvis det er den rigtige vægt
+				response = inputServer.readLine();
+				System.out.println(response);
+			}
 
 			// Slå fra på rigtig vægt
 			if (!realScale) {
@@ -55,7 +57,7 @@ public class MainASE {
 				inputServer.readLine();
 				inputServer.readLine();
 			}
-			
+
 			boolean loopOne = false;
 			while (true) {
 
@@ -108,7 +110,7 @@ public class MainASE {
 			// 6: Vægten svarer tilbage med navn på recept der skal produceres (eks: saltvand med citron)
 			outToServer.writeBytes("P111 \""+recept_navn+"\"" + '\n');
 			inputServer.readLine();
-			inputServer.readLine();
+			if (!realScale) inputServer.readLine();
 
 			// 16: Pkt. 7 – 15 gentages indtil alle råvarer er afvejet.
 			// Hent alle råvarer i en recept
@@ -126,22 +128,24 @@ public class MainASE {
 				dal.setProduktBatchStatus(Integer.valueOf(produktbatch_id), 1);
 				outToServer.writeBytes("P111 \"Produktbatch er nu Under Produktion\"" + '\n');
 				inputServer.readLine();
-				inputServer.readLine();
+				if (!realScale) inputServer.readLine();
 
 				// 9: Vægten tareres
 				outToServer.writeBytes("T" + '\n');
 				System.out.println(inputServer.readLine());
-				inputServer.readLine();
+				if (!realScale) inputServer.readLine();
 
 				// DER ER ET PROBLEM HER, HVOR MAN IKKE KAN SIMULERE AT DER PLACERES EN BEHOLDER
 				// (MAN KAN IKKE SKRIVE "B 2.12" FORDI DER SKAL SVARES PÅ RM20).....
 				// LØSNING?? Vi kan lave B-kommandoen tilgængelig eksternt 	i vægt simulatoren
 
 				// 10: Vægten beder om første tara beholder. 11: Operatør placerer første tarabeholder og trykker ’ok’.
-				outToServer.writeBytes("B 0.125" + '\n');
-				System.out.println(inputServer.readLine());
-				inputServer.readLine();
-				
+				if (!realScale) {
+					outToServer.writeBytes("B 0.125" + '\n');
+					System.out.println(inputServer.readLine());
+					inputServer.readLine();
+				}
+
 				do {
 					writeRM20ToScale(8, "Sæt beholder på (OK)", "OK", "");
 					response = readRM20FromScale().toUpperCase();
@@ -150,14 +154,14 @@ public class MainASE {
 				// 12: Vægten af tarabeholder registreres
 				outToServer.writeBytes("S" + '\n');
 				tarabeholder_vaegt = inputServer.readLine().split(" ")[7].replaceAll(",", ".");
-				inputServer.readLine();
+				if (!realScale) inputServer.readLine();
 
 				System.out.println("Beholder vægt: "+tarabeholder_vaegt);
 
 				// 13: Vægten tareres.
 				outToServer.writeBytes("T" + '\n');
 				System.out.println(inputServer.readLine());
-				inputServer.readLine();
+				if (!realScale) inputServer.readLine();
 
 				raavare_navn = dal.getRaavareNameFromID(rk.getRvrId());
 
@@ -171,23 +175,25 @@ public class MainASE {
 				// 15: Operatøren afvejer op til den ønskede mængde og trykker ’ok’
 				raavare_amount = String.valueOf(rk.getNomNetto());
 				raavare_tolerance = String.valueOf(rk.getTolerance());
-				
+
 				// Simulér masse placeret på vægt
-				outToServer.writeBytes("B "+rk.getNomNetto() + '\n');
-				System.out.println(inputServer.readLine());
-				inputServer.readLine();
-				
+				if (!realScale) {
+					outToServer.writeBytes("B "+rk.getNomNetto() + '\n');
+					System.out.println(inputServer.readLine());
+					inputServer.readLine();
+				}
+
 				do {
 					writeRM20ToScale(8, "Afvej "+raavare_amount+" kg", "OK", "");
 					response = readRM20FromScale();
 					outToServer.writeBytes("S" + '\n');
 					afvejet_vaegt = inputServer.readLine().split(" ")[7].replaceAll(",", ".");
-					inputServer.readLine();
+					if (!realScale) inputServer.readLine();
 					System.out.println("Afvejet: "+afvejet_vaegt);
 				} while (!"OK".equals(response) || 
 						!(Double.valueOf(afvejet_vaegt) <= Double.valueOf(raavare_amount)+Double.valueOf(raavare_tolerance)) ||
 						!(Double.valueOf(afvejet_vaegt) >= Double.valueOf(raavare_amount)-Double.valueOf(raavare_tolerance)));
-				
+
 				dal.insertProduktBatchKomp(Integer.valueOf(produktbatch_id), Integer.valueOf(raavarebatch_id), 
 						Double.valueOf(tarabeholder_vaegt.replaceAll(",", ".")), Double.valueOf(afvejet_vaegt.replaceAll(",", ".")), Integer.valueOf(opr_id));
 			}
@@ -196,7 +202,7 @@ public class MainASE {
 			dal.setProduktBatchStatus(Integer.valueOf(produktbatch_id), 2);
 			outToServer.writeBytes("P111 \"Produktbatch er nu Afsluttet\"" + '\n');
 			inputServer.readLine();
-			inputServer.readLine();
+			if (!realScale) inputServer.readLine();
 
 			// 18: Det kan herefter genoptages af en ny operatør.
 			System.out.println("Goodbye");
@@ -242,7 +248,7 @@ public class MainASE {
 	private static String readRM20FromScale() throws IOException {
 		while (!RM20_status) {
 			response = inputServer.readLine();
-			inputServer.readLine();
+			if (!realScale) inputServer.readLine();
 			if (response.startsWith("RM20 B")) {
 				System.out.println("Command executed, user input follows.");
 				RM20_status = true;
@@ -254,19 +260,31 @@ public class MainASE {
 				System.out.println("Command understood but parameter wrong.");
 				break;
 			}
+			try {
+				Thread.sleep(200);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 
 		while (RM20_status) {
 			response = inputServer.readLine();
-			inputServer.readLine();
+			if (!realScale) inputServer.readLine();
 			if (response.startsWith("RM20 A")) {
 				response = response.split(" ")[2];
-				// Validate here if response is an integer?
+				// Validate here if response is an integer or string?
 				RM20_status = false;
-				return response;
+				return response.replaceAll("\"", "");
 			} else if (response.startsWith("RM20 C")) {
 				System.out.println("RM20 afbrudt på vægt.");
 				RM20_status = false;
+			}
+			try {
+				Thread.sleep(200);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
 		}
 		return "RM20 afbrudt på vægt.";

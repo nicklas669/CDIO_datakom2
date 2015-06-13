@@ -24,11 +24,11 @@ public class DAL {
 			stmt = conn.createStatement();
 
 
-
 		} catch (SQLException se) {
 			se.printStackTrace();
 
-		} catch (Exception e) {
+		} 
+		catch (Exception e) {
 			e.printStackTrace();
 
 		}
