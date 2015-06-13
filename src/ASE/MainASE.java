@@ -20,7 +20,7 @@ public class MainASE {
 
 	static boolean realScale = true;
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws InterruptedException {
 		DAL dal = new DAL();
 
 		String opr_id, opr_name = "";
@@ -51,7 +51,6 @@ public class MainASE {
 				System.out.println(response);
 			}
 
-			// Slå fra på rigtig vægt
 			if (!realScale) {
 				outToServer.writeBytes("P111 \"Blank\"" + '\n');
 				inputServer.readLine();
@@ -66,6 +65,17 @@ public class MainASE {
 					writeRM20ToScale(4, "Operator ID?", "", "");
 					opr_id = readRM20FromScale();
 					opr_name = dal.getOprNameFromID(opr_id);
+					if ("ID findes ikke!".equals(opr_name) || "SQL fejl".equals(opr_name)) {
+						outToServer.writeBytes("P111 \"ID findes ikke - Proev igen!\"" + '\n');
+						inputServer.readLine();
+						if (!realScale) inputServer.readLine();
+						Thread.sleep(1000);
+					}
+					else {
+						outToServer.writeBytes("P111 \" \"" + '\n');
+						inputServer.readLine();
+						if (!realScale) inputServer.readLine();
+					}
 				} while ("ID findes ikke!".equals(opr_name) || "SQL fejl".equals(opr_name));
 
 				// Prompt for om navnet er korrekt på vægt
@@ -263,7 +273,6 @@ public class MainASE {
 			try {
 				Thread.sleep(200);
 			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
