@@ -19,6 +19,7 @@ public class MainASE {
 	static DataOutputStream outToServer;
 
 	static boolean realScale = true;
+	static DecimalFormat df = new DecimalFormat("0.000");
 
 	public static void main(String[] args) throws InterruptedException {
 		DAL dal = new DAL();
@@ -229,9 +230,13 @@ public class MainASE {
 					afvejet_vaegt = inputServer.readLine().split(" ")[7].replaceAll(",", ".");
 					if (!realScale) inputServer.readLine();
 					System.out.println("Afvejet: "+afvejet_vaegt);
-				} while (!"OK".equals(response) || 
-						!(Double.valueOf(afvejet_vaegt) <= Double.valueOf(raavare_amount)+Double.valueOf(raavare_tolerance)) ||
-						!(Double.valueOf(afvejet_vaegt) >= Double.valueOf(raavare_amount)-Double.valueOf(raavare_tolerance)));
+					if (!checkWeight(afvejet_vaegt, raavare_amount, raavare_tolerance)) {
+						outToServer.writeBytes("P111 \"Der er afvejet for lidt/meget.\"" + '\n');
+						inputServer.readLine();
+						if (!realScale) inputServer.readLine();
+						Thread.sleep(2000);
+					}
+				} while (!"OK".equals(response) || !checkWeight(afvejet_vaegt, raavare_amount, raavare_tolerance));
 
 				dal.insertProduktBatchKomp(Integer.valueOf(produktbatch_id), Integer.valueOf(raavarebatch_id), 
 						Double.valueOf(tarabeholder_vaegt.replaceAll(",", ".")), Double.valueOf(afvejet_vaegt.replaceAll(",", ".")), Integer.valueOf(opr_id));
@@ -281,6 +286,21 @@ public class MainASE {
 		outToServer.writeBytes("P111 \" \"" + '\n');
 		inputServer.readLine();
 		if (!realScale) inputServer.readLine();
+	}
+	
+	/**
+	 * Checks whether a weight is within its tolerance range (in percentage).
+	 * @param afvejet_vaegt
+	 * @param raavare_amount
+	 * @param raavare_tolerance
+	 * @return true if weight is within range and false if it is not.
+	 */
+	private static boolean checkWeight(String afvejet_vaegt, String raavare_amount, String raavare_tolerance) {
+		System.out.println(df.format(Double.valueOf(raavare_amount)-((Double.valueOf(raavare_amount)/100.0)*Double.valueOf(raavare_tolerance))));
+		System.out.println(df.format(Double.valueOf(raavare_amount)+((Double.valueOf(raavare_amount)/100.0)*Double.valueOf(raavare_tolerance))));
+		if ((Double.valueOf(afvejet_vaegt) <= Double.valueOf(raavare_amount)+((Double.valueOf(raavare_amount)/100.0)*Double.valueOf(raavare_tolerance))) &&
+		(Double.valueOf(afvejet_vaegt) >= Double.valueOf(raavare_amount)-((Double.valueOf(raavare_amount)/100.0)*Double.valueOf(raavare_tolerance)))) return true;
+		return false;
 	}
 
 	/**
