@@ -18,7 +18,7 @@ public class DAL {
 
 			Class.forName("com.mysql.jdbc.Driver");
 
-			System.out.println("Connecting to database...");
+//			System.out.println("Connecting to database...");
 			conn = DriverManager.getConnection(DB_URL, USER, PASS);
 
 			stmt = conn.createStatement();
@@ -38,7 +38,6 @@ public class DAL {
 	public void insertProduktBatchKomp(int pb_id, int rb_id, double tara, double netto, int opr_id){
 		try {
 			String sql = String.format(Locale.US, "INSERT INTO produktbatchkomponent VALUES (%d, %d, %f, %f, %d)", pb_id, rb_id, tara, netto, opr_id);
-			System.out.println(sql);
 			stmt = conn.createStatement();
 			int result = stmt.executeUpdate(sql);
 		} catch(SQLException e) {

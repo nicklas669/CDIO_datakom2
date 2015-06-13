@@ -51,6 +51,7 @@ public class MainASE {
 				System.out.println(response);
 			}
 
+			// Skriver noget i sekundære display (nødvendigt for at vores simulator fungerer korrekt)
 			if (!realScale) {
 				outToServer.writeBytes("P111 \"Blank\"" + '\n');
 				inputServer.readLine();
@@ -65,22 +66,22 @@ public class MainASE {
 					writeRM20ToScale(4, "Operator ID?", "", "");
 					opr_id = readRM20FromScale();
 					opr_name = dal.getOprNameFromID(opr_id);
+					// Skriv P111 hvis ID ikke findes (og vent 2 sekunder så bruger kan nå at læse)
 					if ("ID findes ikke!".equals(opr_name) || "SQL fejl".equals(opr_name)) {
+						System.out.println("ID FANDTES IKKE!");
 						outToServer.writeBytes("P111 \"ID findes ikke - Proev igen!\"" + '\n');
-						inputServer.readLine();
+						System.out.println(inputServer.readLine());
 						if (!realScale) inputServer.readLine();
-						Thread.sleep(1000);
+						Thread.sleep(2000);
 					}
 					else {
-						outToServer.writeBytes("P111 \" \"" + '\n');
-						inputServer.readLine();
-						if (!realScale) inputServer.readLine();
+						resetP111();
 					}
 				} while ("ID findes ikke!".equals(opr_name) || "SQL fejl".equals(opr_name));
 
-				// Prompt for om navnet er korrekt på vægt
 				loop1: while (true) {
 
+					// Prompt for om navnet er korrekt på vægt
 					writeRM20ToScale(8, opr_name + "?(Y/N)", "Y", "");
 					response = readRM20FromScale().toUpperCase();
 					if (response.equals("Y")) {
@@ -103,42 +104,59 @@ public class MainASE {
 				}
 			}
 
-			System.out.println(opr_name + " is locked in as the using operator");
+			System.out.println(opr_name + " is logged in as the using operator");
 
 			// 5: Operatøren indtaster produktbatch nummer.
 
-			// Prompt for gyldigt produktbatch
-
+			// Prompt for gyldigt produktbatch id
 			do {
 				writeRM20ToScale(4, "Produktbatch ID?", "", "");
 				response = readRM20FromScale();
 				produktbatch_id = response;
 				recept_id = dal.getReceptIDFromPBID(produktbatch_id);
 				recept_navn = dal.getReceptNavnFromPBID(produktbatch_id);
+				// Skriv P111 hvis ID ikke findes (og vent 2 sekunder så bruger kan nå at læse)
+				if ("ID findes ikke!".equals(recept_navn) || "SQL fejl".equals(recept_navn)) {
+					outToServer.writeBytes("P111 \"ID findes ikke - Proev igen!\"" + '\n');
+					inputServer.readLine();
+					if (!realScale) inputServer.readLine();
+					Thread.sleep(2000);
+				}
+				else {
+					resetP111();
+				}
 			} while ("ID findes ikke!".equals(recept_navn) || "SQL Fejl".equals(recept_navn));
 
 			// 6: Vægten svarer tilbage med navn på recept der skal produceres (eks: saltvand med citron)
 			outToServer.writeBytes("P111 \""+recept_navn+"\"" + '\n');
 			inputServer.readLine();
 			if (!realScale) inputServer.readLine();
+			Thread.sleep(2000);
+			resetP111();
 
 			// 16: Pkt. 7 – 15 gentages indtil alle råvarer er afvejet.
 			// Hent alle råvarer i en recept
 			receptkomponenter = dal.getRaavarerInRecept(Integer.valueOf(recept_id));
 
+			int i = 0;
 			for (ReceptKomponentDTO rk : receptkomponenter) {
 				// 7: Operatøren kontrollerer at vægten er ubelastet og trykker ’ok’
 
 				do {
-					writeRM20ToScale(8, "Vægt ubelastet?(OK)", "OK", "");
+					writeRM20ToScale(8, "Vaegt ubelastet?(OK)", "OK", "");
 					response = readRM20FromScale().toUpperCase();
 				} while (!"OK".equals(response));
 
 				// 8: Systemet sætter produktbatch nummerets status til ”Under produktion”.
-				dal.setProduktBatchStatus(Integer.valueOf(produktbatch_id), 1);
-				outToServer.writeBytes("P111 \"Produktbatch er nu Under Produktion\"" + '\n');
-				inputServer.readLine();
-				if (!realScale) inputServer.readLine();
+				// Gøres kun for første råvare
+				if (i == 1) {
+					dal.setProduktBatchStatus(Integer.valueOf(produktbatch_id), 1);
+					outToServer.writeBytes("P111 \"PB er nu Under Produktion\"" + '\n');
+					inputServer.readLine();
+					if (!realScale) inputServer.readLine();
+					Thread.sleep(2000);
+					resetP111();
+				}
 
 				// 9: Vægten tareres
 				outToServer.writeBytes("T" + '\n');
@@ -150,6 +168,8 @@ public class MainASE {
 				// LØSNING?? Vi kan lave B-kommandoen tilgængelig eksternt 	i vægt simulatoren
 
 				// 10: Vægten beder om første tara beholder. 11: Operatør placerer første tarabeholder og trykker ’ok’.
+
+				// Simulerer at en masse placeres på vægten (bruges kun med simulator)
 				if (!realScale) {
 					outToServer.writeBytes("B 0.125" + '\n');
 					System.out.println(inputServer.readLine());
@@ -157,7 +177,7 @@ public class MainASE {
 				}
 
 				do {
-					writeRM20ToScale(8, "Sæt beholder på (OK)", "OK", "");
+					writeRM20ToScale(8, "Saet beholder paa (OK)", "OK", "");
 					response = readRM20FromScale().toUpperCase();
 				} while (!"OK".equals(response));
 
@@ -180,6 +200,15 @@ public class MainASE {
 					writeRM20ToScale(4, "RB ID for "+raavare_navn, "", "");
 					response = readRM20FromScale();
 					raavarebatch_id = dal.getRaavarebatch(Integer.valueOf(response), rk.getRvrId());
+					if ("ID findes ikke!".equals(raavarebatch_id) || "SQL fejl".equals(raavarebatch_id)) {
+						outToServer.writeBytes("P111 \"ID indeholder ikke raavaren!\"" + '\n');
+						inputServer.readLine();
+						if (!realScale) inputServer.readLine();
+						Thread.sleep(2000);
+					}
+					else {
+						resetP111();
+					}
 				} while ("ID findes ikke!".equals(raavarebatch_id) || "SQL Fejl".equals(raavarebatch_id));
 
 				// 15: Operatøren afvejer op til den ønskede mængde og trykker ’ok’
@@ -206,18 +235,37 @@ public class MainASE {
 
 				dal.insertProduktBatchKomp(Integer.valueOf(produktbatch_id), Integer.valueOf(raavarebatch_id), 
 						Double.valueOf(tarabeholder_vaegt.replaceAll(",", ".")), Double.valueOf(afvejet_vaegt.replaceAll(",", ".")), Integer.valueOf(opr_id));
+
+				// Fortæl operatør at han er færdig med denne råvare og kan starte ny.
+				outToServer.writeBytes("P111 \""+raavare_navn+" er nu afvejet.\"" + '\n');
+				inputServer.readLine();
+				if (!realScale) inputServer.readLine();
+				Thread.sleep(2000);
+
+				// Skriv besked hvis der er flere råvarer der skal afvejes.
+				if (i < receptkomponenter.size()) {
+					outToServer.writeBytes("P111 \"Fortsaet med naeste raavare.\"" + '\n');
+					inputServer.readLine();
+					if (!realScale) inputServer.readLine();
+				}
+				Thread.sleep(2000);
+				resetP111();
+				i++;
 			}
 
 			// 17: Systemet sætter produktbatch nummerets status til ”Afsluttet”.
 			dal.setProduktBatchStatus(Integer.valueOf(produktbatch_id), 2);
-			outToServer.writeBytes("P111 \"Produktbatch er nu Afsluttet\"" + '\n');
+			outToServer.writeBytes("P111 \"PB er nu Afsluttet\"" + '\n');
 			inputServer.readLine();
 			if (!realScale) inputServer.readLine();
+			Thread.sleep(2000);
+			resetP111();
 
 			// 18: Det kan herefter genoptages af en ny operatør.
 			System.out.println("Goodbye");
 
 			clientSocket.close();
+			System.exit(0);
 
 		} catch (UnknownHostException e) {
 			// TODO Auto-generated catch block
@@ -227,6 +275,12 @@ public class MainASE {
 			e.printStackTrace();
 		}
 
+	}
+
+	private static void resetP111() throws IOException {
+		outToServer.writeBytes("P111 \" \"" + '\n');
+		inputServer.readLine();
+		if (!realScale) inputServer.readLine();
 	}
 
 	/**
@@ -260,14 +314,13 @@ public class MainASE {
 			response = inputServer.readLine();
 			if (!realScale) inputServer.readLine();
 			if (response.startsWith("RM20 B")) {
-				System.out.println("Command executed, user input follows.");
+				//				System.out.println("Command executed, user input follows.");
 				RM20_status = true;
 			} else if (response.startsWith("RM20 I")) {
-				System.out
-				.println("Command understood but not executable at the moment.");
+				//				System.out.println("Command understood but not executable at the moment.");
 				break;
 			} else if (response.startsWith("RM20 L")) {
-				System.out.println("Command understood but parameter wrong.");
+				//				System.out.println("Command understood but parameter wrong.");
 				break;
 			}
 			try {
