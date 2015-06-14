@@ -218,7 +218,7 @@ public class MainASE {
 
 				// Simulér masse placeret på vægt
 				if (!realScale) {
-					outToServer.writeBytes("B "+rk.getNomNetto() + '\n');
+					outToServer.writeBytes("B "+(rk.getNomNetto()+Double.valueOf(tarabeholder_vaegt)) +'\n');
 					System.out.println(inputServer.readLine());
 					inputServer.readLine();
 				}
@@ -283,7 +283,7 @@ public class MainASE {
 	}
 
 	private static void resetP111() throws IOException {
-		outToServer.writeBytes("P111 \" \"" + '\n');
+		outToServer.writeBytes("P111 \"  \"" + '\n');
 		inputServer.readLine();
 		if (!realScale) inputServer.readLine();
 	}
@@ -296,8 +296,6 @@ public class MainASE {
 	 * @return true if weight is within range and false if it is not.
 	 */
 	private static boolean checkWeight(String afvejet_vaegt, String raavare_amount, String raavare_tolerance) {
-		System.out.println(df.format(Double.valueOf(raavare_amount)-((Double.valueOf(raavare_amount)/100.0)*Double.valueOf(raavare_tolerance))));
-		System.out.println(df.format(Double.valueOf(raavare_amount)+((Double.valueOf(raavare_amount)/100.0)*Double.valueOf(raavare_tolerance))));
 		if ((Double.valueOf(afvejet_vaegt) <= Double.valueOf(raavare_amount)+((Double.valueOf(raavare_amount)/100.0)*Double.valueOf(raavare_tolerance))) &&
 		(Double.valueOf(afvejet_vaegt) >= Double.valueOf(raavare_amount)-((Double.valueOf(raavare_amount)/100.0)*Double.valueOf(raavare_tolerance)))) return true;
 		return false;
